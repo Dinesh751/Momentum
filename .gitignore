@@ -1,0 +1,27 @@
+# Maven
+target/
+*.jar
+*.war
+*.class
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Sensitive config — copy application.properties.example and fill in your values
+momentum-api/src/main/resources/application.properties
+
+# Logs
+*.log
+logs/
+
+# Spring Boot DevTools
+.spring-boot-devtools.properties
