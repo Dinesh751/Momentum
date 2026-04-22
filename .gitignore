@@ -16,6 +16,9 @@ target/
 # macOS
 .DS_Store
 
+# Claude Code
+.claude/
+
 # Sensitive config — copy application.properties.example and fill in your values
 momentum-api/src/main/resources/application.properties
 
@@ -25,3 +28,8 @@ logs/
 
 # Spring Boot DevTools
 .spring-boot-devtools.properties
+
+# Node / React Native
+node_modules/
+.expo/
+dist/
