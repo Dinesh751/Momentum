@@ -140,7 +140,56 @@ export default function DashboardScreen() {
           </Text>
         </View>
 
-        {/* Stat cards row */}
+        {/* Tasks summary */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Tasks' as never)}
+          style={{
+            marginHorizontal: 20,
+            marginBottom: 16,
+            backgroundColor: CARD,
+            borderRadius: 16,
+            padding: 20,
+            borderWidth: 1,
+            borderColor: CARD_BORDER,
+          }}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <Text style={{ color: TEXT_PRIMARY, fontWeight: '600', fontSize: 15 }}>Today's Tasks</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={{ color: '#818cf8', fontSize: 14, fontWeight: '500' }}>View all</Text>
+              <Ionicons name="chevron-forward" size={16} color="#818cf8" />
+            </View>
+          </View>
+
+          {totalTasks === 0 ? (
+            <Text style={{ color: TEXT_SECONDARY, fontSize: 14 }}>No tasks yet — add some to earn points!</Text>
+          ) : (
+            <View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                <View style={{ flex: 1, borderRadius: 999, height: 6, backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                  <View
+                    style={{
+                      borderRadius: 999,
+                      height: 6,
+                      width: `${(completedCount / totalTasks) * 100}%`,
+                      backgroundColor: '#6366f1',
+                    }}
+                  />
+                </View>
+                <Text style={{ color: TEXT_SECONDARY, fontSize: 12, marginLeft: 12, fontWeight: '500' }}>
+                  {completedCount}/{totalTasks}
+                </Text>
+              </View>
+              <Text style={{ color: TEXT_SECONDARY, fontSize: 14 }}>
+                {completedCount === totalTasks
+                  ? 'All done! Great job 🎉'
+                  : `${totalTasks - completedCount} task${totalTasks - completedCount !== 1 ? 's' : ''} remaining`}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Streak + Badges row */}
         <View style={{ flexDirection: 'row', marginHorizontal: 20, marginBottom: 16, gap: 12 }}>
           {/* Streak */}
           <TouchableOpacity
@@ -148,7 +197,7 @@ export default function DashboardScreen() {
             style={{
               flex: 1,
               backgroundColor: '#1a0e00',
-              borderRadius: 20,
+              borderRadius: 16,
               padding: 16,
               borderWidth: 1,
               borderColor: 'rgba(249,115,22,0.25)',
@@ -159,22 +208,22 @@ export default function DashboardScreen() {
               elevation: 4,
             }}
           >
-            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(249,115,22,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <Ionicons name="flame" size={18} color="#f97316" />
+            <View style={{ width: 40, height: 40, backgroundColor: 'rgba(249,115,22,0.15)', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <Ionicons name="flame" size={20} color="#f97316" />
             </View>
-            <Text style={{ color: '#6b6b9a', fontSize: 11, fontWeight: '600', marginBottom: 2 }}>Streak</Text>
+            <Text style={{ color: '#6b6b9a', fontSize: 14, fontWeight: '600' }}>Streak</Text>
             {streak ? (
               <>
-                <Text style={{ color: '#ffffff', fontSize: 26, fontWeight: '900', lineHeight: 30 }}>
+                <Text style={{ color: '#ffffff', fontSize: 24, fontWeight: '900', marginTop: 2 }}>
                   {streak.currentStreak}
-                  <Text style={{ fontSize: 14, fontWeight: '500', color: '#f97316' }}> d</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '400', color: TEXT_SECONDARY }}> days</Text>
                 </Text>
-                <Text style={{ color: '#f97316', fontSize: 10, fontWeight: '700', marginTop: 2, textTransform: 'uppercase', letterSpacing: 1 }}>
+                <Text style={{ color: '#f97316', fontSize: 12, marginTop: 2 }}>
                   {streak.streakStage.charAt(0) + streak.streakStage.slice(1).toLowerCase()}
                 </Text>
               </>
             ) : (
-              <Text style={{ color: '#52527a', fontSize: 13 }}>No streak yet</Text>
+              <Text style={{ color: TEXT_SECONDARY, fontSize: 12, marginTop: 2 }}>No streak yet</Text>
             )}
           </TouchableOpacity>
 
@@ -184,7 +233,7 @@ export default function DashboardScreen() {
             style={{
               flex: 1,
               backgroundColor: '#130f00',
-              borderRadius: 20,
+              borderRadius: 16,
               padding: 16,
               borderWidth: 1,
               borderColor: 'rgba(245,158,11,0.25)',
@@ -195,74 +244,23 @@ export default function DashboardScreen() {
               elevation: 4,
             }}
           >
-            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(245,158,11,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-              <Ionicons name="trophy" size={18} color="#f59e0b" />
+            <View style={{ width: 40, height: 40, backgroundColor: 'rgba(245,158,11,0.15)', borderRadius: 12, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <Ionicons name="trophy" size={20} color="#f59e0b" />
             </View>
-            <Text style={{ color: '#6b6b9a', fontSize: 11, fontWeight: '600', marginBottom: 2 }}>Badges</Text>
+            <Text style={{ color: '#6b6b9a', fontSize: 14, fontWeight: '600' }}>Badges</Text>
             {badges.length > 0 ? (
               <>
-                <Text style={{ color: '#ffffff', fontSize: 26, fontWeight: '900', lineHeight: 30 }}>
+                <Text style={{ color: '#ffffff', fontSize: 24, fontWeight: '900', marginTop: 2 }}>
                   {badges.filter((b) => b.earned).length}
-                  <Text style={{ fontSize: 14, fontWeight: '500', color: '#6b6b9a' }}> / {badges.length}</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '400', color: TEXT_SECONDARY }}> / {badges.length}</Text>
                 </Text>
-                <Text style={{ color: '#f59e0b', fontSize: 10, fontWeight: '700', marginTop: 2, textTransform: 'uppercase', letterSpacing: 1 }}>
-                  Earned
-                </Text>
+                <Text style={{ color: '#f59e0b', fontSize: 12, marginTop: 2 }}>earned</Text>
               </>
             ) : (
-              <Text style={{ color: '#52527a', fontSize: 13 }}>Tap to view</Text>
+              <Text style={{ color: TEXT_SECONDARY, fontSize: 12, marginTop: 2 }}>Tap to view</Text>
             )}
           </TouchableOpacity>
         </View>
-
-        {/* Tasks summary */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Tasks' as never)}
-          style={{
-            marginHorizontal: 20,
-            marginBottom: 16,
-            backgroundColor: CARD,
-            borderRadius: 20,
-            padding: 20,
-            borderWidth: 1,
-            borderColor: CARD_BORDER,
-          }}
-        >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <Text style={{ color: TEXT_PRIMARY, fontWeight: '700', fontSize: 15 }}>Today's Tasks</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Text style={{ color: '#818cf8', fontSize: 13, fontWeight: '600' }}>View all</Text>
-              <Ionicons name="chevron-forward" size={16} color="#818cf8" />
-            </View>
-          </View>
-
-          {totalTasks === 0 ? (
-            <Text style={{ color: TEXT_SECONDARY, fontSize: 14 }}>No tasks yet — add some to start earning!</Text>
-          ) : (
-            <View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                <View style={{ flex: 1, height: 6, backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 3 }}>
-                  <View
-                    style={{
-                      height: 6,
-                      width: `${(completedCount / totalTasks) * 100}%`,
-                      backgroundColor: '#6366f1',
-                      borderRadius: 3,
-                    }}
-                  />
-                </View>
-                <Text style={{ color: TEXT_SECONDARY, fontSize: 12, marginLeft: 12, fontWeight: '600' }}>
-                  {completedCount}/{totalTasks}
-                </Text>
-              </View>
-              <Text style={{ color: TEXT_SECONDARY, fontSize: 13 }}>
-                {completedCount === totalTasks
-                  ? 'All done! Absolutely crushing it 🎉'
-                  : `${totalTasks - completedCount} task${totalTasks - completedCount !== 1 ? 's' : ''} left to conquer`}
-              </Text>
-            </View>
-          )}
-        </TouchableOpacity>
 
         {/* Consistency card */}
         <TouchableOpacity
