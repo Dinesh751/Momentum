@@ -18,15 +18,6 @@ import { useAuthStore } from '../../store/authStore';
 type Props = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 type FormData = { displayName: string; email: string; password: string };
 
-const BG = '#08080f';
-const CARD = '#12121e';
-const BORDER = 'rgba(255,255,255,0.07)';
-const INPUT_BG = '#1a1a2e';
-const INPUT_BORDER = 'rgba(255,255,255,0.1)';
-const TEXT_PRIMARY = '#ffffff';
-const TEXT_SECONDARY = '#6b6b9a';
-const ACCENT = '#6366f1';
-
 export default function RegisterScreen({ navigation }: Props) {
   const register = useAuthStore((s) => s.register);
   const {
@@ -47,72 +38,43 @@ export default function RegisterScreen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+    <SafeAreaView className="flex-1 bg-indigo-600">
+      {/* Compact header */}
+      <View className="px-6 pt-4 pb-8">
+        <TouchableOpacity
+          className="self-start mb-5"
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="arrow-back" size={24} color="white" />
+        </TouchableOpacity>
+        <View className="flex-row items-center">
+          <View
+            className="w-10 h-10 rounded-xl items-center justify-center mr-3"
+            style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+          >
+            <Ionicons name="flash" size={20} color="white" />
+          </View>
+          <View>
+            <Text className="text-2xl font-bold text-white">Join Momentum</Text>
+            <Text className="text-indigo-200 text-xs mt-0.5">Start your journey today</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* Form card */}
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView
-          contentContainerStyle={{ paddingBottom: 48 }}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Header */}
-          <View style={{ paddingHorizontal: 24, paddingTop: 20, paddingBottom: 36 }}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              style={{ marginBottom: 28 }}
-            >
-              <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
-            </TouchableOpacity>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-              <View
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 16,
-                  backgroundColor: '#1c1c32',
-                  borderWidth: 1,
-                  borderColor: 'rgba(99,102,241,0.4)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  shadowColor: ACCENT,
-                  shadowOffset: { width: 0, height: 0 },
-                  shadowOpacity: 0.6,
-                  shadowRadius: 12,
-                  elevation: 8,
-                }}
-              >
-                <Ionicons name="flash" size={26} color="#818cf8" />
-              </View>
-              <View>
-                <Text style={{ color: TEXT_PRIMARY, fontSize: 26, fontWeight: '900', letterSpacing: -0.5 }}>
-                  Join Momentum
-                </Text>
-                <Text style={{ color: ACCENT, fontSize: 11, fontWeight: '700', letterSpacing: 2, marginTop: 2 }}>
-                  START YOUR JOURNEY
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Form card */}
-          <View
-            style={{
-              marginHorizontal: 20,
-              backgroundColor: CARD,
-              borderRadius: 28,
-              padding: 28,
-              borderWidth: 1,
-              borderColor: BORDER,
-            }}
+        <View className="flex-1 bg-white rounded-t-3xl">
+          <ScrollView
+            contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 32, paddingBottom: 40 }}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Text style={{ color: TEXT_PRIMARY, fontSize: 24, fontWeight: '800', marginBottom: 4 }}>
-              Create account
-            </Text>
-            <Text style={{ color: TEXT_SECONDARY, fontSize: 14, marginBottom: 28 }}>
+            <Text className="text-2xl font-bold text-gray-900">Create account</Text>
+            <Text className="text-gray-400 text-sm mt-1 mb-8">
               Fill in your details to get started
             </Text>
 
@@ -125,34 +87,34 @@ export default function RegisterScreen({ navigation }: Props) {
                 maxLength: { value: 100, message: 'Max 100 characters' },
               }}
               render={({ field: { onChange, value } }) => (
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={{ color: TEXT_SECONDARY, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>
+                <View className="mb-4">
+                  <Text className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">
                     Display Name
                   </Text>
                   <View
+                    className="flex-row items-center rounded-xl px-4 py-3.5"
                     style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: INPUT_BG,
-                      borderRadius: 14,
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
+                      backgroundColor: '#f8fafc',
                       borderWidth: 1.5,
-                      borderColor: errors.displayName ? '#ef4444' : INPUT_BORDER,
+                      borderColor: errors.displayName ? '#ef4444' : '#e2e8f0',
                     }}
                   >
-                    <Ionicons name="person-outline" size={18} color={errors.displayName ? '#ef4444' : TEXT_SECONDARY} />
+                    <Ionicons
+                      name="person-outline"
+                      size={18}
+                      color={errors.displayName ? '#ef4444' : '#94a3b8'}
+                    />
                     <TextInput
-                      style={{ flex: 1, marginLeft: 12, color: TEXT_PRIMARY, fontSize: 16 }}
+                      className="flex-1 ml-3 text-gray-900 text-base"
                       placeholder="Your name"
-                      placeholderTextColor={TEXT_SECONDARY}
+                      placeholderTextColor="#94a3b8"
                       autoComplete="name"
                       value={value}
                       onChangeText={onChange}
                     />
                   </View>
                   {errors.displayName && (
-                    <Text style={{ color: '#ef4444', fontSize: 12, marginTop: 6, marginLeft: 4 }}>
+                    <Text className="text-red-500 text-xs mt-1.5 ml-1">
                       {errors.displayName.message}
                     </Text>
                   )}
@@ -169,27 +131,27 @@ export default function RegisterScreen({ navigation }: Props) {
                 pattern: { value: /\S+@\S+\.\S+/, message: 'Invalid email format' },
               }}
               render={({ field: { onChange, value } }) => (
-                <View style={{ marginBottom: 16 }}>
-                  <Text style={{ color: TEXT_SECONDARY, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>
+                <View className="mb-4">
+                  <Text className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">
                     Email
                   </Text>
                   <View
+                    className="flex-row items-center rounded-xl px-4 py-3.5"
                     style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: INPUT_BG,
-                      borderRadius: 14,
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
+                      backgroundColor: '#f8fafc',
                       borderWidth: 1.5,
-                      borderColor: errors.email ? '#ef4444' : INPUT_BORDER,
+                      borderColor: errors.email ? '#ef4444' : '#e2e8f0',
                     }}
                   >
-                    <Ionicons name="mail-outline" size={18} color={errors.email ? '#ef4444' : TEXT_SECONDARY} />
+                    <Ionicons
+                      name="mail-outline"
+                      size={18}
+                      color={errors.email ? '#ef4444' : '#94a3b8'}
+                    />
                     <TextInput
-                      style={{ flex: 1, marginLeft: 12, color: TEXT_PRIMARY, fontSize: 16 }}
+                      className="flex-1 ml-3 text-gray-900 text-base"
                       placeholder="you@example.com"
-                      placeholderTextColor={TEXT_SECONDARY}
+                      placeholderTextColor="#94a3b8"
                       autoCapitalize="none"
                       keyboardType="email-address"
                       autoComplete="email"
@@ -198,9 +160,7 @@ export default function RegisterScreen({ navigation }: Props) {
                     />
                   </View>
                   {errors.email && (
-                    <Text style={{ color: '#ef4444', fontSize: 12, marginTop: 6, marginLeft: 4 }}>
-                      {errors.email.message}
-                    </Text>
+                    <Text className="text-red-500 text-xs mt-1.5 ml-1">{errors.email.message}</Text>
                   )}
                 </View>
               )}
@@ -215,27 +175,27 @@ export default function RegisterScreen({ navigation }: Props) {
                 minLength: { value: 8, message: 'Min 8 characters' },
               }}
               render={({ field: { onChange, value } }) => (
-                <View style={{ marginBottom: 28 }}>
-                  <Text style={{ color: TEXT_SECONDARY, fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 8 }}>
+                <View className="mb-7">
+                  <Text className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">
                     Password
                   </Text>
                   <View
+                    className="flex-row items-center rounded-xl px-4 py-3.5"
                     style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: INPUT_BG,
-                      borderRadius: 14,
-                      paddingHorizontal: 16,
-                      paddingVertical: 14,
+                      backgroundColor: '#f8fafc',
                       borderWidth: 1.5,
-                      borderColor: errors.password ? '#ef4444' : INPUT_BORDER,
+                      borderColor: errors.password ? '#ef4444' : '#e2e8f0',
                     }}
                   >
-                    <Ionicons name="lock-closed-outline" size={18} color={errors.password ? '#ef4444' : TEXT_SECONDARY} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={errors.password ? '#ef4444' : '#94a3b8'}
+                    />
                     <TextInput
-                      style={{ flex: 1, marginLeft: 12, color: TEXT_PRIMARY, fontSize: 16 }}
+                      className="flex-1 ml-3 text-gray-900 text-base"
                       placeholder="Min 8 characters"
-                      placeholderTextColor={TEXT_SECONDARY}
+                      placeholderTextColor="#94a3b8"
                       secureTextEntry
                       autoComplete="new-password"
                       value={value}
@@ -243,9 +203,7 @@ export default function RegisterScreen({ navigation }: Props) {
                     />
                   </View>
                   {errors.password && (
-                    <Text style={{ color: '#ef4444', fontSize: 12, marginTop: 6, marginLeft: 4 }}>
-                      {errors.password.message}
-                    </Text>
+                    <Text className="text-red-500 text-xs mt-1.5 ml-1">{errors.password.message}</Text>
                   )}
                 </View>
               )}
@@ -253,58 +211,33 @@ export default function RegisterScreen({ navigation }: Props) {
 
             {errors.root && (
               <View
-                style={{
-                  backgroundColor: 'rgba(239,68,68,0.1)',
-                  borderWidth: 1,
-                  borderColor: 'rgba(239,68,68,0.3)',
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                  marginBottom: 20,
-                }}
+                className="rounded-xl px-4 py-3 mb-5"
+                style={{ backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca' }}
               >
-                <Text style={{ color: '#f87171', fontSize: 13, textAlign: 'center' }}>
-                  {errors.root.message}
-                </Text>
+                <Text className="text-red-600 text-sm text-center">{errors.root.message}</Text>
               </View>
             )}
 
             <TouchableOpacity
+              className="bg-indigo-600 rounded-xl py-4 items-center"
               onPress={handleSubmit(onSubmit)}
               disabled={isSubmitting}
-              style={{
-                backgroundColor: ACCENT,
-                borderRadius: 16,
-                paddingVertical: 16,
-                alignItems: 'center',
-                shadowColor: ACCENT,
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.5,
-                shadowRadius: 12,
-                elevation: 8,
-                opacity: isSubmitting ? 0.7 : 1,
-              }}
             >
               {isSubmitting ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text style={{ color: 'white', fontWeight: '800', fontSize: 16, letterSpacing: 0.5 }}>
-                  Create Account
-                </Text>
+                <Text className="text-white font-bold text-base">Create Account</Text>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={{ marginTop: 24, alignItems: 'center' }}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={{ color: TEXT_SECONDARY, fontSize: 14 }}>
+            <TouchableOpacity className="mt-6 items-center" onPress={() => navigation.goBack()}>
+              <Text className="text-gray-400 text-sm">
                 Already have an account?{' '}
-                <Text style={{ color: '#818cf8', fontWeight: '700' }}>Sign in</Text>
+                <Text className="text-indigo-600 font-semibold">Sign in</Text>
               </Text>
             </TouchableOpacity>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
