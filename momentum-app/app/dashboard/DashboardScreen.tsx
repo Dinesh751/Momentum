@@ -7,6 +7,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useTaskStore } from '../../store/taskStore';
 import { useStreakStore } from '../../store/streakStore';
 import { useBadgeStore } from '../../store/badgeStore';
+import { useDailyPointsStore } from '../../store/dailyPointsStore';
 import { DEFAULT_DAILY_THRESHOLD } from '../../constants';
 
 const getGreeting = () => {
@@ -24,19 +25,24 @@ export default function DashboardScreen() {
   const { tasks, loadTasks } = useTaskStore();
   const { streak, loadStreak } = useStreakStore();
   const { badges, loadBadges } = useBadgeStore();
+  const { dailyPoints, loadForDate } = useDailyPointsStore();
   const navigation = useNavigation();
+
+  const todayISO = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     loadTasks();
     loadStreak();
     loadBadges();
+    loadForDate(todayISO);
   }, []);
 
   const pointsEarned = tasks.filter((t) => t.completed).reduce((sum, t) => sum + t.points, 0);
   const completedCount = tasks.filter((t) => t.completed).length;
   const totalTasks = tasks.length;
-  const progress = Math.min((pointsEarned / DEFAULT_DAILY_THRESHOLD) * 100, 100);
-  const goalMet = pointsEarned >= DEFAULT_DAILY_THRESHOLD;
+  const threshold = dailyPoints?.thresholdPts ?? DEFAULT_DAILY_THRESHOLD;
+  const progress = Math.min((pointsEarned / threshold) * 100, 100);
+  const goalMet = pointsEarned >= threshold;
   const firstName = user?.displayName?.split(' ')[0] ?? 'there';
 
   return (
@@ -69,7 +75,7 @@ export default function DashboardScreen() {
           </View>
           <View className="flex-row items-baseline mb-4">
             <Text className="text-white text-4xl font-bold">{pointsEarned}</Text>
-            <Text className="text-indigo-300 text-base ml-1">/ {DEFAULT_DAILY_THRESHOLD} pts</Text>
+            <Text className="text-indigo-300 text-base ml-1">/ {threshold} pts</Text>
           </View>
           <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 3 }}>
             <View

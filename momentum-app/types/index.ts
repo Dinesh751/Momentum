@@ -45,6 +45,15 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface DailyPoints {
+  date: string;
+  pointsEarned: number;
+  thresholdPts: number;
+  totalPossiblePts: number;
+  thresholdMet: boolean;
+  consistencyPercent: number;
+}
+
 export type StreakStage = 'BEGINNER' | 'BUILDING' | 'HABIT' | 'COMMITTED';
 
 export interface Streak {

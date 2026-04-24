@@ -15,6 +15,7 @@ import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTaskStore } from '../../store/taskStore';
+import { useDailyPointsStore } from '../../store/dailyPointsStore';
 import taskService from '../../services/taskService';
 import { DEFAULT_DAILY_THRESHOLD } from '../../constants';
 import { Task, Priority } from '../../types';
@@ -176,10 +177,12 @@ function TaskCard({
 
 function ProgressHeader({ selectedDate }: { selectedDate: string }) {
   const tasks = useTaskStore((s) => s.tasks);
+  const dailyPoints = useDailyPointsStore((s) => s.dailyPoints);
+  const threshold = dailyPoints?.thresholdPts ?? DEFAULT_DAILY_THRESHOLD;
   const pointsEarned = tasks.filter((t) => t.completed).reduce((sum, t) => sum + t.points, 0);
   const completedCount = tasks.filter((t) => t.completed).length;
-  const progress = Math.min((pointsEarned / DEFAULT_DAILY_THRESHOLD) * 100, 100);
-  const goalMet = pointsEarned >= DEFAULT_DAILY_THRESHOLD;
+  const progress = Math.min((pointsEarned / threshold) * 100, 100);
+  const goalMet = pointsEarned >= threshold;
 
   return (
     <View>
@@ -206,7 +209,7 @@ function ProgressHeader({ selectedDate }: { selectedDate: string }) {
         </View>
         <View className="flex-row items-baseline mb-4">
           <Text className="text-white text-4xl font-bold">{pointsEarned}</Text>
-          <Text className="text-indigo-300 text-base ml-1">/ {DEFAULT_DAILY_THRESHOLD} pts</Text>
+          <Text className="text-indigo-300 text-base ml-1">/ {threshold} pts</Text>
         </View>
         <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 3 }}>
           <View
@@ -515,6 +518,7 @@ export default function TasksScreen() {
     toggleComplete, deleteTask, moveToTomorrow,
     carriedOverIds, carryOverFromYesterday,
   } = useTaskStore();
+  const loadDailyPoints = useDailyPointsStore((s) => s.loadForDate);
   const [modalVisible, setModalVisible] = useState(false);
   const [carryOverTasks, setCarryOverTasks] = useState<Task[]>([]);
   const [carryOverLoading, setCarryOverLoading] = useState(false);
@@ -524,12 +528,17 @@ export default function TasksScreen() {
 
   useEffect(() => {
     loadTasks();
+    loadDailyPoints(todayISO());
     taskService.getIncompleteBefore(todayISO(), afterDateForRange('3d'))
       .then((fetched) => {
         if (fetched.length > 0) setCarryOverTasks(fetched);
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    loadDailyPoints(selectedDate);
+  }, [selectedDate]);
 
   const handleRangeChange = async (range: DayRange) => {
     setCarryOverRange(range);
