@@ -34,11 +34,11 @@ export default function AppTabs() {
         const [active, inactive] = TAB_ICONS[route.name as keyof AppTabsParamList];
         return {
           headerShown: false,
-          tabBarActiveTintColor: '#4f46e5',
-          tabBarInactiveTintColor: '#9ca3af',
+          tabBarActiveTintColor: '#818cf8',
+          tabBarInactiveTintColor: '#3b3b5c',
           tabBarStyle: {
-            backgroundColor: 'white',
-            borderTopColor: '#f1f5f9',
+            backgroundColor: '#0d0d1a',
+            borderTopColor: 'rgba(255,255,255,0.06)',
             borderTopWidth: 1,
             height: 60 + insets.bottom,
             paddingBottom: insets.bottom + 8,
