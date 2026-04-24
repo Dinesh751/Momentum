@@ -13,4 +13,6 @@ public interface DailyPointsRepository extends JpaRepository<DailyPoints, Long> 
     Optional<DailyPoints> findByUserAndDate(User user, LocalDate date);
 
     List<DailyPoints> findAllByUserAndDateBetween(User user, LocalDate start, LocalDate end);
+
+    List<DailyPoints> findAllByUser(User user);
 }

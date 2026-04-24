@@ -6,9 +6,9 @@ public enum StreakStage {
     public int getThreshold() {
         return switch (this) {
             case BEGINNER  -> 10;
-            case BUILDING  -> 15;
-            case HABIT     -> 20;
-            case COMMITTED -> 30;
+            case BUILDING  -> 12;
+            case HABIT     -> 15;
+            case COMMITTED -> 20;
         };
     }
 }

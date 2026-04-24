@@ -20,14 +20,14 @@ consistent performers.
 - Default daily threshold: 10 points
 - Threshold met → +1 streak day
 - Threshold not met → streak resets to 0
-- No tasks added → grace day (max 1 per week)
+- No tasks added → grace day (max 2 per week)
 - Consistency % = pointsEarned / Math.max(thresholdPts, totalPossiblePts) x 100
 
 ## Streak Stages & Auto Progression
 - Beginner  → Day 1         → 10 pts threshold
-- Building  → 7 day streak  → 15 pts threshold
-- Habit     → 14 day streak → 20 pts threshold
-- Committed → 30 day streak → 30 pts threshold
+- Building  → 7 day streak  → 12 pts threshold
+- Habit     → 14 day streak → 15 pts threshold
+- Committed → 30 day streak → 20 pts threshold
 
 ## Badge Catalogue
 - First Step        → Complete first task

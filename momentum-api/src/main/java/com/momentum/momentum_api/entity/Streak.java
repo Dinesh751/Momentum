@@ -51,6 +51,9 @@ public class Streak {
     @Column(name = "last_activity_date")
     private LocalDate lastActivityDate;
 
+    @Column(name = "last_evaluated_date")
+    private LocalDate lastEvaluatedDate;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 

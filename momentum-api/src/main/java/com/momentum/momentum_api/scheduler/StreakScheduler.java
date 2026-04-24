@@ -24,7 +24,7 @@ public class StreakScheduler {
 
         userRepository.findAllByDeletedAtIsNull().forEach(user -> {
             try {
-                streakService.evaluateDayForUser(user, yesterday);
+                streakService.evaluateMissedDays(user, yesterday);
             } catch (Exception e) {
                 log.error("Failed to evaluate streak for user {}: {}", user.getEmail(), e.getMessage());
             }

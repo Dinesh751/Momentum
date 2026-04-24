@@ -38,6 +38,24 @@ public class StreakService {
     }
 
     /**
+     * Backfills any missed days from lastEvaluatedDate+1 up to and including upToDate.
+     * Called by the scheduler so a server restart never silently skips days.
+     */
+    @Transactional
+    public void evaluateMissedDays(User user, LocalDate upToDate) {
+        Streak streak = streakRepository.findByUser(user).orElse(null);
+        if (streak == null) return;
+
+        LocalDate startFrom = streak.getLastEvaluatedDate() != null
+                ? streak.getLastEvaluatedDate().plusDays(1)
+                : upToDate;
+
+        for (LocalDate date = startFrom; !date.isAfter(upToDate); date = date.plusDays(1)) {
+            evaluateDayForUser(user, date);
+        }
+    }
+
+    /**
      * Evaluates one user's streak for the given date.
      * Called by the end-of-day scheduler for yesterday's date.
      */
@@ -63,7 +81,7 @@ public class StreakService {
             }
         } else {
             // no tasks added — grace day applies if available
-            if (streak.getGraceDaysUsedThisWeek() < 1) {
+            if (streak.getGraceDaysUsedThisWeek() < 2) {
                 streak.setGraceDaysUsedThisWeek(streak.getGraceDaysUsedThisWeek() + 1);
                 markGraceDay(user, date, streak.getCurrentThreshold());
                 log.info("User {} — grace day used on {}", user.getEmail(), date);
@@ -73,6 +91,7 @@ public class StreakService {
             }
         }
 
+        streak.setLastEvaluatedDate(date);
         streakRepository.save(streak);
     }
 
