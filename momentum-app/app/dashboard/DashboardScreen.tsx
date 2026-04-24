@@ -8,6 +8,7 @@ import { useTaskStore } from '../../store/taskStore';
 import { useStreakStore } from '../../store/streakStore';
 import { useBadgeStore } from '../../store/badgeStore';
 import { useDailyPointsStore } from '../../store/dailyPointsStore';
+import { useStatsStore } from '../../store/statsStore';
 import { DEFAULT_DAILY_THRESHOLD } from '../../constants';
 
 const getGreeting = () => {
@@ -26,6 +27,7 @@ export default function DashboardScreen() {
   const { streak, loadStreak } = useStreakStore();
   const { badges, loadBadges } = useBadgeStore();
   const { dailyPoints, loadForDate } = useDailyPointsStore();
+  const { overview, loadAll: loadStats } = useStatsStore();
   const navigation = useNavigation();
 
   const todayISO = new Date().toISOString().split('T')[0];
@@ -35,6 +37,7 @@ export default function DashboardScreen() {
     loadStreak();
     loadBadges();
     loadForDate(todayISO);
+    loadStats();
   }, []);
 
   const pointsEarned = tasks.filter((t) => t.completed).reduce((sum, t) => sum + t.points, 0);
@@ -143,7 +146,7 @@ export default function DashboardScreen() {
         </TouchableOpacity>
 
         {/* Streak + Badges row */}
-        <View className="flex-row mx-5" style={{ gap: 12 }}>
+        <View className="flex-row mx-5 mb-4" style={{ gap: 12 }}>
           <TouchableOpacity
             className="flex-1 bg-white rounded-2xl p-4"
             style={{
@@ -202,6 +205,58 @@ export default function DashboardScreen() {
             )}
           </TouchableOpacity>
         </View>
+
+        {/* Overall consistency card */}
+        <TouchableOpacity
+          className="mx-5 bg-white rounded-2xl p-5"
+          style={{
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.06,
+            shadowRadius: 4,
+            elevation: 2,
+          }}
+          onPress={() => navigation.navigate('Stats' as never)}
+        >
+          <View className="flex-row justify-between items-center mb-3">
+            <View className="flex-row items-center" style={{ gap: 8 }}>
+              <View className="w-8 h-8 bg-indigo-50 rounded-lg items-center justify-center">
+                <Ionicons name="trending-up-outline" size={16} color="#6366f1" />
+              </View>
+              <Text className="font-semibold text-gray-800">Overall Consistency</Text>
+            </View>
+            <View className="flex-row items-center">
+              <Text className="text-indigo-600 text-sm font-medium">View stats</Text>
+              <Ionicons name="chevron-forward" size={16} color="#4f46e5" />
+            </View>
+          </View>
+
+          {overview ? (
+            <>
+              <View className="flex-row items-baseline mb-3">
+                <Text className="text-3xl font-bold text-gray-900">
+                  {overview.consistencyPercent}
+                </Text>
+                <Text className="text-gray-400 text-base ml-0.5">%</Text>
+              </View>
+              <View style={{ height: 6, backgroundColor: '#e0e7ff', borderRadius: 3 }}>
+                <View
+                  style={{
+                    height: 6,
+                    width: `${overview.consistencyPercent}%`,
+                    backgroundColor: '#4f46e5',
+                    borderRadius: 3,
+                  }}
+                />
+              </View>
+              <Text className="text-gray-400 text-xs mt-2">
+                {overview.lifetimePoints.toLocaleString()} lifetime pts · {overview.badgesEarned} badges
+              </Text>
+            </>
+          ) : (
+            <Text className="text-gray-400 text-sm">Tap to view your stats</Text>
+          )}
+        </TouchableOpacity>
 
       </ScrollView>
     </SafeAreaView>
