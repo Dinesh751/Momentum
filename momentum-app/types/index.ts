@@ -44,3 +44,22 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
 }
+
+export type StreakStage = 'BEGINNER' | 'BUILDING' | 'HABIT' | 'COMMITTED';
+
+export interface Streak {
+  currentStreak: number;
+  longestStreak: number;
+  streakStage: StreakStage;
+  currentThreshold: number;
+  graceDaysUsedThisWeek: number;
+  lastActivityDate: string | null;
+}
+
+export interface Badge {
+  code: string;
+  name: string;
+  description: string;
+  earned: boolean;
+  earnedAt: string | null;
+}

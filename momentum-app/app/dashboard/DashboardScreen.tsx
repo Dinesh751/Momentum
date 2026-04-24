@@ -5,6 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../../store/authStore';
 import { useTaskStore } from '../../store/taskStore';
+import { useStreakStore } from '../../store/streakStore';
+import { useBadgeStore } from '../../store/badgeStore';
 import { DEFAULT_DAILY_THRESHOLD } from '../../constants';
 
 const getGreeting = () => {
@@ -20,10 +22,14 @@ const formatDate = (date: Date) =>
 export default function DashboardScreen() {
   const user = useAuthStore((s) => s.user);
   const { tasks, loadTasks } = useTaskStore();
+  const { streak, loadStreak } = useStreakStore();
+  const { badges, loadBadges } = useBadgeStore();
   const navigation = useNavigation();
 
   useEffect(() => {
     loadTasks();
+    loadStreak();
+    loadBadges();
   }, []);
 
   const pointsEarned = tasks.filter((t) => t.completed).reduce((sum, t) => sum + t.points, 0);
@@ -132,7 +138,7 @@ export default function DashboardScreen() {
 
         {/* Streak + Badges row */}
         <View className="flex-row mx-5" style={{ gap: 12 }}>
-          <View
+          <TouchableOpacity
             className="flex-1 bg-white rounded-2xl p-4"
             style={{
               shadowColor: '#000',
@@ -141,15 +147,28 @@ export default function DashboardScreen() {
               shadowRadius: 4,
               elevation: 2,
             }}
+            onPress={() => navigation.navigate('Streaks' as never)}
           >
             <View className="w-10 h-10 bg-orange-50 rounded-xl items-center justify-center mb-3">
               <Ionicons name="flame" size={20} color="#f97316" />
             </View>
             <Text className="font-semibold text-gray-700 text-sm">Streak</Text>
-            <Text className="text-gray-400 text-xs mt-0.5">Coming soon</Text>
-          </View>
+            {streak ? (
+              <>
+                <Text className="text-2xl font-bold text-gray-900 mt-0.5">
+                  {streak.currentStreak}
+                  <Text className="text-sm font-normal text-gray-400"> days</Text>
+                </Text>
+                <Text className="text-gray-400 text-xs mt-0.5 capitalize">
+                  {streak.streakStage.charAt(0) + streak.streakStage.slice(1).toLowerCase()}
+                </Text>
+              </>
+            ) : (
+              <Text className="text-gray-400 text-xs mt-0.5">No streak yet</Text>
+            )}
+          </TouchableOpacity>
 
-          <View
+          <TouchableOpacity
             className="flex-1 bg-white rounded-2xl p-4"
             style={{
               shadowColor: '#000',
@@ -158,13 +177,24 @@ export default function DashboardScreen() {
               shadowRadius: 4,
               elevation: 2,
             }}
+            onPress={() => navigation.navigate('Badges' as never)}
           >
             <View className="w-10 h-10 bg-yellow-50 rounded-xl items-center justify-center mb-3">
               <Ionicons name="trophy" size={20} color="#eab308" />
             </View>
             <Text className="font-semibold text-gray-700 text-sm">Badges</Text>
-            <Text className="text-gray-400 text-xs mt-0.5">Coming soon</Text>
-          </View>
+            {badges.length > 0 ? (
+              <>
+                <Text className="text-2xl font-bold text-gray-900 mt-0.5">
+                  {badges.filter((b) => b.earned).length}
+                  <Text className="text-sm font-normal text-gray-400"> / {badges.length}</Text>
+                </Text>
+                <Text className="text-gray-400 text-xs mt-0.5">earned</Text>
+              </>
+            ) : (
+              <Text className="text-gray-400 text-xs mt-0.5">Tap to view</Text>
+            )}
+          </TouchableOpacity>
         </View>
 
       </ScrollView>
