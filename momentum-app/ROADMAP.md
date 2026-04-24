@@ -9,10 +9,11 @@
 
 
 ## Phase 2 — Core Features
-- [x] Tasks — list today's tasks, add/complete/delete a task
-- [x] Dashboard — daily points summary, progress bar toward threshold, tasks summary
-- [ ] Streaks — streak history and consistency percentage view (waiting on API)
-- [ ] Badges — badge showcase, earned vs locked states (waiting on API)
+- [x] Tasks — list today's tasks, add/complete/delete a task, carry-over, move to tomorrow, day navigation
+- [x] Dashboard — daily points summary, progress bar toward threshold, tasks summary, streak + badge cards
+- [x] Streaks — current streak, stage progression, longest streak, grace days, last active date
+- [x] Badges — full catalogue grid, earned vs locked states, unlock dates, summary card
+- [x] Daily Points API — threshold driven by streak stage (not hardcoded), reloads on date change
 
 ## Phase 3 — Polish
 - [ ] Loading states and error handling across all screens
