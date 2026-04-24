@@ -5,12 +5,14 @@ import DashboardScreen from '../app/dashboard/DashboardScreen';
 import TasksScreen from '../app/tasks/TasksScreen';
 import StreaksScreen from '../app/streaks/StreaksScreen';
 import BadgesScreen from '../app/badges/BadgesScreen';
+import StatsScreen from '../app/stats/StatsScreen';
 
 export type AppTabsParamList = {
   Dashboard: undefined;
   Tasks: undefined;
   Streaks: undefined;
   Badges: undefined;
+  Stats: undefined;
 };
 
 const Tab = createBottomTabNavigator<AppTabsParamList>();
@@ -20,6 +22,7 @@ const TAB_ICONS: Record<keyof AppTabsParamList, [string, string]> = {
   Tasks:     ['checkmark-circle', 'checkmark-circle-outline'],
   Streaks:   ['flame', 'flame-outline'],
   Badges:    ['trophy', 'trophy-outline'],
+  Stats:     ['bar-chart', 'bar-chart-outline'],
 };
 
 export default function AppTabs() {
@@ -55,6 +58,7 @@ export default function AppTabs() {
       <Tab.Screen name="Tasks" component={TasksScreen} />
       <Tab.Screen name="Streaks" component={StreaksScreen} />
       <Tab.Screen name="Badges" component={BadgesScreen} />
+      <Tab.Screen name="Stats" component={StatsScreen} />
     </Tab.Navigator>
   );
 }

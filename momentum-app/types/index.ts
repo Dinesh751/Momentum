@@ -45,6 +45,41 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+export interface StatsOverview {
+  lifetimePoints: number;
+  currentStreak: number;
+  longestStreak: number;
+  streakStage: string;
+  badgesEarned: number;
+  consistencyPercent: number;
+}
+
+export interface DailyStatEntry {
+  date: string;
+  pointsEarned: number;
+  threshold: number;
+  totalPossible: number;
+  thresholdMet: boolean;
+  graceDay: boolean;
+}
+
+export interface PeriodStats {
+  days: DailyStatEntry[];
+  totalPointsEarned: number;
+  daysThresholdMet: number;
+  consistencyPercent: number;
+}
+
+export interface TaskStats {
+  totalCreated: number;
+  totalCompleted: number;
+  completionRate: number;
+  highCompleted: number;
+  midCompleted: number;
+  lowCompleted: number;
+  noneCompleted: number;
+}
+
 export interface DailyPoints {
   date: string;
   pointsEarned: number;
