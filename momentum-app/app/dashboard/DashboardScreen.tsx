@@ -154,7 +154,7 @@ export default function DashboardScreen() {
           }}
         >
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <Text style={{ color: TEXT_PRIMARY, fontWeight: '600', fontSize: 15 }}>Today's Tasks</Text>
+            <Text style={{ color: TEXT_PRIMARY, fontWeight: '600' }}>Today's Tasks</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={{ color: '#818cf8', fontSize: 14, fontWeight: '500' }}>View all</Text>
               <Ionicons name="chevron-forward" size={16} color="#818cf8" />
@@ -268,7 +268,7 @@ export default function DashboardScreen() {
           style={{
             marginHorizontal: 20,
             backgroundColor: '#0a1a0f',
-            borderRadius: 20,
+            borderRadius: 16,
             padding: 20,
             borderWidth: 1,
             borderColor: 'rgba(16,185,129,0.2)',
@@ -279,12 +279,12 @@ export default function DashboardScreen() {
             elevation: 4,
           }}
         >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: 'rgba(16,185,129,0.15)', alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="trending-up-outline" size={17} color="#10b981" />
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: 'rgba(16,185,129,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="trending-up-outline" size={16} color="#10b981" />
               </View>
-              <Text style={{ color: TEXT_PRIMARY, fontWeight: '700', fontSize: 15 }}>Overall Consistency</Text>
+              <Text style={{ color: TEXT_PRIMARY, fontWeight: '600' }}>Overall Consistency</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Text style={{ color: '#10b981', fontSize: 13, fontWeight: '600' }}>View stats</Text>
@@ -294,11 +294,11 @@ export default function DashboardScreen() {
 
           {overview ? (
             <>
-              <View style={{ flexDirection: 'row', alignItems: 'flex-end', marginBottom: 12 }}>
-                <Text style={{ color: '#ffffff', fontSize: 44, fontWeight: '900', lineHeight: 48 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: 12 }}>
+                <Text style={{ color: '#ffffff', fontSize: 30, fontWeight: '700' }}>
                   {overview.consistencyPercent}
                 </Text>
-                <Text style={{ color: '#10b981', fontSize: 20, fontWeight: '700', marginBottom: 6, marginLeft: 2 }}>%</Text>
+                <Text style={{ color: '#6b6b9a', fontSize: 16, marginLeft: 2 }}>%</Text>
               </View>
               <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 3 }}>
                 <View
@@ -314,7 +314,7 @@ export default function DashboardScreen() {
                   }}
                 />
               </View>
-              <Text style={{ color: '#3b5c47', fontSize: 12, marginTop: 10 }}>
+              <Text style={{ color: '#3b5c47', fontSize: 12, marginTop: 8 }}>
                 {overview.lifetimePoints.toLocaleString()} lifetime pts · {overview.badgesEarned} badges earned
               </Text>
             </>
