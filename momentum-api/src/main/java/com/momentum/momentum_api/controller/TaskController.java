@@ -36,6 +36,14 @@ public class TaskController {
                 .body(ApiResponse.ok("Task created", response));
     }
 
+    @GetMapping("/backlog")
+    public ResponseEntity<ApiResponse<List<TaskResponse>>> getBacklogTasks(
+            @AuthenticationPrincipal UserDetails userDetails) {
+
+        List<TaskResponse> tasks = taskService.getBacklogTasks(userDetails.getUsername());
+        return ResponseEntity.ok(ApiResponse.ok("Backlog retrieved", tasks));
+    }
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<TaskResponse>>> getTasksByDate(
             @AuthenticationPrincipal UserDetails userDetails,

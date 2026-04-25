@@ -11,11 +11,15 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { TasksStackParamList } from '../../navigation/TasksStack';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTaskStore } from '../../store/taskStore';
 import { useDailyPointsStore } from '../../store/dailyPointsStore';
+import { useBacklogStore } from '../../store/backlogStore';
 import taskService from '../../services/taskService';
 import { DEFAULT_DAILY_THRESHOLD } from '../../constants';
 import { Task, Priority } from '../../types';
@@ -197,8 +201,10 @@ function TaskCard({
 }
 
 function ProgressHeader({ selectedDate }: { selectedDate: string }) {
+  const navigation = useNavigation<NativeStackNavigationProp<TasksStackParamList>>();
   const tasks = useTaskStore((s) => s.tasks);
   const dailyPoints = useDailyPointsStore((s) => s.dailyPoints);
+  const backlogCount = useBacklogStore((s) => s.tasks.length);
   const threshold = dailyPoints?.thresholdPts ?? DEFAULT_DAILY_THRESHOLD;
   const pointsEarned = tasks.filter((t) => t.completed).reduce((sum, t) => sum + t.points, 0);
   const completedCount = tasks.filter((t) => t.completed).length;
@@ -207,9 +213,49 @@ function ProgressHeader({ selectedDate }: { selectedDate: string }) {
 
   return (
     <View>
-      <View className="items-center px-4 pt-4 pb-3">
-        <Text className="text-2xl font-bold text-gray-900">{formatDateLabel(selectedDate)}</Text>
-        <Text className="text-gray-400 text-sm mt-0.5">{formatDateSub(selectedDate)}</Text>
+      <View className="flex-row items-center px-4 pt-4 pb-3">
+        {/* Spacer to keep date centred */}
+        <View style={{ width: 80 }} />
+
+        <View className="flex-1 items-center">
+          <Text className="text-2xl font-bold text-gray-900">{formatDateLabel(selectedDate)}</Text>
+          <Text className="text-gray-400 text-sm mt-0.5">{formatDateSub(selectedDate)}</Text>
+        </View>
+
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Backlog')}
+          hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#eef2ff',
+            borderRadius: 20,
+            paddingHorizontal: 10,
+            paddingVertical: 6,
+            gap: 5,
+            marginRight: 4,
+          }}
+        >
+          <Ionicons name="file-tray-outline" size={15} color="#4f46e5" />
+          <Text style={{ fontSize: 12, fontWeight: '700', color: '#4f46e5' }}>Backlog</Text>
+          {backlogCount > 0 && (
+            <View
+              style={{
+                backgroundColor: '#4f46e5',
+                borderRadius: 8,
+                minWidth: 16,
+                height: 16,
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingHorizontal: 4,
+              }}
+            >
+              <Text style={{ color: 'white', fontSize: 9, fontWeight: '800' }}>
+                {backlogCount > 99 ? '99+' : backlogCount}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
       </View>
 
       <View className="mx-4 mb-5 bg-indigo-600 rounded-2xl p-5">
@@ -544,6 +590,7 @@ export default function TasksScreen() {
     carriedOverIds, carryOverFromYesterday,
   } = useTaskStore();
   const loadDailyPoints = useDailyPointsStore((s) => s.loadForDate);
+  const loadBacklog = useBacklogStore((s) => s.loadBacklog);
   const [modalVisible, setModalVisible] = useState(false);
   const [seriesTask, setSeriesTask] = useState<Task | null>(null);
   const [carryOverTasks, setCarryOverTasks] = useState<Task[]>([]);
@@ -552,6 +599,10 @@ export default function TasksScreen() {
   const [isRangeLoading, setIsRangeLoading] = useState(false);
   const [rangeError, setRangeError] = useState<string | null>(null);
   const isPast = selectedDate < todayISO();
+
+  useEffect(() => {
+    loadBacklog();
+  }, []);
 
   useEffect(() => {
     loadTasks();

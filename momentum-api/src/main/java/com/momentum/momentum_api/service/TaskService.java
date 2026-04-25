@@ -163,6 +163,15 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
+    public List<TaskResponse> getBacklogTasks(String email) {
+        User user = resolveUser(email);
+        return taskRepository.findAllByUserAndDueDateIsNullOrderByCreatedAtDesc(user)
+                .stream()
+                .map(TaskResponse::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<TaskResponse> getTasksByDate(String email, LocalDate date) {
         User user = resolveUser(email);
         return taskRepository.findAllByUserAndDueDateOrderByCreatedAtAsc(user, date)

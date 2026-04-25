@@ -2,7 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DashboardScreen from '../app/dashboard/DashboardScreen';
-import TasksScreen from '../app/tasks/TasksScreen';
+import TasksStack from './TasksStack';
 import StreaksScreen from '../app/streaks/StreaksScreen';
 import BadgesScreen from '../app/badges/BadgesScreen';
 import StatsScreen from '../app/stats/StatsScreen';
@@ -55,7 +55,7 @@ export default function AppTabs() {
       }}
     >
       <Tab.Screen name="Dashboard" component={DashboardScreen} />
-      <Tab.Screen name="Tasks" component={TasksScreen} />
+      <Tab.Screen name="Tasks" component={TasksStack} />
       <Tab.Screen name="Streaks" component={StreaksScreen} />
       <Tab.Screen name="Badges" component={BadgesScreen} />
       <Tab.Screen name="Stats" component={StatsScreen} />

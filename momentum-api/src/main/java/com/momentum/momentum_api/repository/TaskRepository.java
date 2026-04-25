@@ -45,4 +45,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByRecurringGroupId(UUID recurringGroupId);
 
     long countByRecurringGroupIdAndCompletedTrue(UUID recurringGroupId);
+
+    List<Task> findAllByUserAndDueDateIsNullOrderByCreatedAtDesc(User user);
 }
