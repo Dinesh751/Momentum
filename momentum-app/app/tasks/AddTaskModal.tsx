@@ -148,14 +148,14 @@ export default function AddTaskModal({ visible, onClose, selectedDate }: Props) 
       >
         <KeyboardAvoidingView
           className="flex-1 justify-end"
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
         >
           <View
             className="bg-white rounded-t-3xl px-6 pt-4"
             style={{ paddingBottom: 32 }}
             onStartShouldSetResponder={() => true}
           >
-            <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+            <ScrollView showsVerticalScrollIndicator={false} bounces={false} keyboardShouldPersistTaps="handled">
               {/* Handle bar */}
               <View className="w-10 h-1 bg-gray-200 rounded-full self-center mb-6" />
 
@@ -325,14 +325,15 @@ export default function AddTaskModal({ visible, onClose, selectedDate }: Props) 
 
               {/* Submit */}
               <TouchableOpacity
-                className="bg-indigo-600 rounded-xl py-4 items-center"
+                className="bg-indigo-600 rounded-xl py-4"
+                style={{ alignItems: 'center', justifyContent: 'center' }}
                 onPress={handleSubmit(onSubmit)}
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <Text className="text-white font-bold text-base">
+                  <Text style={{ color: 'white', fontWeight: '700', fontSize: 16, textAlign: 'center' }}>
                     {isRecurring ? 'Add Recurring Task' : 'Add Task'}
                   </Text>
                 )}

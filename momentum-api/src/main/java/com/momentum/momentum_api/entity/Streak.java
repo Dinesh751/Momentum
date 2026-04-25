@@ -45,6 +45,10 @@ public class Streak {
     @Builder.Default
     private int graceDaysUsedThisWeek = 0;
 
+    @Column(name = "threshold_miss_grace_used_this_week", nullable = false)
+    @Builder.Default
+    private int thresholdMissGraceUsedThisWeek = 0;
+
     @Column(name = "week_start_date")
     private LocalDate weekStartDate;
 

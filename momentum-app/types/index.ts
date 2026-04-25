@@ -6,6 +6,14 @@ export interface User {
   displayName: string;
 }
 
+export interface UserProfile {
+  email: string;
+  displayName: string;
+  timezone: string;
+  lifetimePoints: number;
+  joinedAt: string;
+}
+
 export interface Task {
   id: number;
   title: string;

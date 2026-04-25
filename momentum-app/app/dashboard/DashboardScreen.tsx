@@ -3,6 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AppStackParamList } from '../../navigation/AppStack';
 import { useAuthStore } from '../../store/authStore';
 import { useTaskStore } from '../../store/taskStore';
 import { useStreakStore } from '../../store/streakStore';
@@ -32,7 +34,7 @@ export default function DashboardScreen() {
   const { badges, error: badgesError, loadBadges } = useBadgeStore();
   const { dailyPoints, isLoading: pointsLoading, error: pointsError, loadForDate } = useDailyPointsStore();
   const { overview, error: statsError, loadAll: loadStats } = useStatsStore();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<AppStackParamList>>();
   const [refreshing, setRefreshing] = useState(false);
 
   const todayISO = localDateISO();
@@ -89,10 +91,20 @@ export default function DashboardScreen() {
         )}
 
         {/* Header */}
-        <View className="px-5 pt-4 pb-6">
-          <Text className="text-gray-400 text-sm">{getGreeting()},</Text>
-          <Text className="text-2xl font-bold text-gray-900">{firstName} 👋</Text>
-          <Text className="text-gray-400 text-sm mt-0.5">{formatDate(new Date())}</Text>
+        <View className="flex-row items-start justify-between px-5 pt-4 pb-6">
+          <View>
+            <Text className="text-gray-400 text-sm">{getGreeting()},</Text>
+            <Text className="text-2xl font-bold text-gray-900">{firstName} 👋</Text>
+            <Text className="text-gray-400 text-sm mt-0.5">{formatDate(new Date())}</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Settings')}
+            className="w-9 h-9 rounded-xl items-center justify-center mt-1"
+            style={{ backgroundColor: '#f1f5f9' }}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <Ionicons name="settings-outline" size={20} color="#6b7280" />
+          </TouchableOpacity>
         </View>
 
         {/* Daily progress card */}

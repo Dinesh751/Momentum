@@ -92,8 +92,8 @@ function TaskCard({
   return (
     <Swipeable
       ref={swipeableRef}
-      renderLeftActions={() => <TomorrowAction onPress={onMoveToTomorrow} />}
-      onSwipeableLeftOpen={onMoveToTomorrow}
+      renderLeftActions={task.completed ? undefined : () => <TomorrowAction onPress={onMoveToTomorrow} />}
+      onSwipeableLeftOpen={task.completed ? undefined : onMoveToTomorrow}
       friction={2}
       overshootFriction={8}
       containerStyle={{ marginHorizontal: 16, marginBottom: 12 }}

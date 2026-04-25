@@ -77,9 +77,15 @@ public class StreakService {
                 log.info("User {} — streak incremented to {}", user.getEmail(), streak.getCurrentStreak());
                 badgeService.evaluateAfterStreakIncrement(user, streak, date);
             } else {
-                // had scoreable tasks but threshold not met — no grace day
-                resetStreak(streak);
-                log.info("User {} — streak reset (threshold not met on {})", user.getEmail(), date);
+                // had scoreable tasks but threshold not met — 1 grace day allowed per week
+                if (streak.getThresholdMissGraceUsedThisWeek() < 1) {
+                    streak.setThresholdMissGraceUsedThisWeek(1);
+                    markGraceDay(user, date, streak.getCurrentThreshold());
+                    log.info("User {} — threshold-miss grace day used on {}", user.getEmail(), date);
+                } else {
+                    resetStreak(streak);
+                    log.info("User {} — streak reset (threshold not met, grace already used, on {})", user.getEmail(), date);
+                }
             }
         } else {
             // no tasks or only NONE-priority tasks — grace day applies if available
@@ -120,6 +126,7 @@ public class StreakService {
         LocalDate thisMonday = LocalDate.now().with(DayOfWeek.MONDAY);
         if (streak.getWeekStartDate() == null || streak.getWeekStartDate().isBefore(thisMonday)) {
             streak.setGraceDaysUsedThisWeek(0);
+            streak.setThresholdMissGraceUsedThisWeek(0);
             streak.setWeekStartDate(thisMonday);
         }
     }

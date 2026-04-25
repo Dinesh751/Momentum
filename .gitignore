@@ -19,8 +19,8 @@ target/
 # Claude Code
 .claude/
 
-# Sensitive config — copy application.properties.example and fill in your values
-momentum-api/src/main/resources/application.properties
+# Sensitive config — copy application.properties.example to application-dev.properties and fill in your values
+momentum-api/src/main/resources/application-dev.properties
 
 # Logs
 *.log

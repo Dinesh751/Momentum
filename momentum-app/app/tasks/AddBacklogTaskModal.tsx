@@ -87,7 +87,7 @@ export default function AddBacklogTaskModal({ visible, onClose, taskToEdit }: Pr
       >
         <KeyboardAvoidingView
           className="flex-1 justify-end"
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          behavior="padding"
         >
           <View
             className="bg-white rounded-t-3xl px-6 pt-4 pb-10"

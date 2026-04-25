@@ -1,0 +1,41 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4338ca"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="30%" y1="0%" x2="70%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#e0e7ff"/>
+    </linearGradient>
+    <!-- Soft glow behind bolt -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#a5b4fc" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#4f46e5" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+
+  <!-- Glow circle -->
+  <ellipse cx="512" cy="512" rx="300" ry="320" fill="url(#glow)"/>
+
+  <!-- Lightning bolt — bold geometric shape -->
+  <!--
+    Top half: points down-left from upper-right
+    Bottom half: points down-right from lower-left
+    Classic zig-zag bolt shape
+  -->
+  <polygon
+    points="
+      578,170
+      398,548
+      510,548
+      446,854
+      638,430
+      524,430
+    "
+    fill="url(#bolt)"
+  />
+</svg>

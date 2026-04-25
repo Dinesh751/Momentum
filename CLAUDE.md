@@ -19,8 +19,9 @@ consistent performers.
 ## Consistency Engine Rules
 - Default daily threshold: 10 points
 - Threshold met → +1 streak day
-- Threshold not met → streak resets to 0
-- No tasks added → grace day (max 2 per week)
+- Threshold not met (had scoreable tasks) → 1 grace day per week; second miss that week resets streak to 0
+- No tasks added (no scoreable tasks) → grace day (max 2 per week); third such day that week resets streak to 0
+- Both grace day counters reset every Monday
 - Consistency % = pointsEarned / Math.max(thresholdPts, totalPossiblePts) x 100
 
 ## Streak Stages & Auto Progression

@@ -1,0 +1,73 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4338ca"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="flame" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="55%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#dc2626"/>
+    </linearGradient>
+    <linearGradient id="innerFlame" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#fef3c7"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+
+  <!-- Outer flame -->
+  <path
+    d="
+      M 512 820
+      C 360 820 250 710 250 570
+      C 250 460 310 390 355 330
+      C 370 308 375 280 368 250
+      C 410 285 440 330 448 390
+      C 462 330 472 255 460 185
+      C 490 220 512 265 520 310
+      C 528 265 548 215 572 185
+      C 562 255 574 330 588 390
+      C 596 330 626 285 668 250
+      C 661 280 666 308 681 330
+      C 726 390 786 460 786 570
+      C 786 710 664 820 512 820
+      Z
+    "
+    fill="url(#flame)"
+  />
+
+  <!-- Inner flame (lighter centre) -->
+  <path
+    d="
+      M 512 750
+      C 430 750 375 695 375 620
+      C 375 565 405 530 426 500
+      C 434 488 438 472 435 455
+      C 458 472 472 495 475 522
+      C 482 495 488 463 483 432
+      C 498 448 510 468 514 490
+      C 518 468 530 446 546 432
+      C 541 463 548 495 556 522
+      C 559 495 573 472 596 455
+      C 593 472 597 488 605 500
+      C 626 530 656 565 656 620
+      C 656 695 594 750 512 750
+      Z
+    "
+    fill="url(#innerFlame)"
+    opacity="0.85"
+  />
+
+  <!-- White checkmark -->
+  <path
+    d="M 418 590 L 474 655 L 618 510"
+    stroke="white"
+    stroke-width="62"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    fill="none"
+  />
+</svg>

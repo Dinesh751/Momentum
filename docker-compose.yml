@@ -1,0 +1,52 @@
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: momentum-postgres
+    environment:
+      POSTGRES_DB: momentum
+      POSTGRES_USER: ${DB_USER:-momentum_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Momentum@123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-momentum_user} -d momentum"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Spring Boot API ─────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./momentum-api
+    container_name: momentum-api
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_USER: ${DB_USER:-momentum_user}
+      DB_PASSWORD: ${DB_PASSWORD:-Momentum@123}
+      JWT_SECRET: ${JWT_SECRET:-4d6f6d656e74756d5365637265744b657932303236537472b696e674c6f6e6748617368}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Expo Dev Server ─────────────────────────────────────────────────────────
+  app:
+    build:
+      context: ./momentum-app
+    container_name: momentum-app
+    ports:
+      - "8081:8081"
+      - "19000:19000"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

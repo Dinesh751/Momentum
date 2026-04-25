@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "momentum-app",
+    "name": "Momentum",
     "slug": "momentum-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,8 +9,8 @@
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "resizeMode": "cover",
+      "backgroundColor": "#4338ca"
     },
     "ios": {
       "supportsTablet": true
@@ -18,10 +18,11 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#4338ca"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.anonymous.momentumapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
