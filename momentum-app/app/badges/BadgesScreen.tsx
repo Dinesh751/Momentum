@@ -1,15 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   FlatList,
-  ActivityIndicator,
-  TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useBadgeStore } from '../../store/badgeStore';
 import { Badge } from '../../types';
+import LoadingScreen from '../../components/LoadingScreen';
+import ErrorScreen from '../../components/ErrorScreen';
+import OfflineBanner from '../../components/OfflineBanner';
 
 // ─── Badge visual config ─────────────────────────────────────────────────────
 
@@ -17,18 +19,18 @@ const BADGE_META: Record<
   string,
   { icon: keyof typeof Ionicons.glyphMap; color: string; bg: string }
 > = {
-  FIRST_STEP:        { icon: 'footsteps-outline',      color: '#10b981', bg: '#ecfdf5' },
-  ON_FIRE:           { icon: 'flame',                   color: '#f97316', bg: '#fff7ed' },
-  WEEK_WARRIOR:      { icon: 'shield-checkmark-outline', color: '#6366f1', bg: '#eef2ff' },
-  DIAMOND_HABIT:     { icon: 'diamond-outline',         color: '#06b6d4', bg: '#ecfeff' },
-  CENTURY_CLUB:      { icon: 'trophy',                  color: '#eab308', bg: '#fefce8' },
-  SHARPSHOOTER:      { icon: 'flash',                   color: '#ef4444', bg: '#fef2f2' },
-  OVERACHIEVER:      { icon: 'rocket-outline',          color: '#8b5cf6', bg: '#f5f3ff' },
-  PERFECT_WEEK:      { icon: 'star',                    color: '#f59e0b', bg: '#fffbeb' },
-  POINT_MILLIONAIRE: { icon: 'cash-outline',            color: '#059669', bg: '#ecfdf5' },
-  '10K_CLUB':        { icon: 'infinite-outline',        color: '#4f46e5', bg: '#eef2ff' },
+  FIRST_STEP:        { icon: 'footsteps-outline',           color: '#10b981', bg: '#ecfdf5' },
+  ON_FIRE:           { icon: 'flame',                        color: '#f97316', bg: '#fff7ed' },
+  WEEK_WARRIOR:      { icon: 'shield-checkmark-outline',     color: '#6366f1', bg: '#eef2ff' },
+  DIAMOND_HABIT:     { icon: 'diamond-outline',              color: '#06b6d4', bg: '#ecfeff' },
+  CENTURY_CLUB:      { icon: 'trophy',                       color: '#eab308', bg: '#fefce8' },
+  SHARPSHOOTER:      { icon: 'flash',                        color: '#ef4444', bg: '#fef2f2' },
+  OVERACHIEVER:      { icon: 'rocket-outline',               color: '#8b5cf6', bg: '#f5f3ff' },
+  PERFECT_WEEK:      { icon: 'star',                         color: '#f59e0b', bg: '#fffbeb' },
+  POINT_MILLIONAIRE: { icon: 'cash-outline',                 color: '#059669', bg: '#ecfdf5' },
+  '10K_CLUB':        { icon: 'infinite-outline',             color: '#4f46e5', bg: '#eef2ff' },
   CLEAN_SWEEP:       { icon: 'checkmark-done-circle-outline', color: '#0ea5e9', bg: '#f0f9ff' },
-  EARLY_BIRD:        { icon: 'sunny-outline',           color: '#f59e0b', bg: '#fffbeb' },
+  EARLY_BIRD:        { icon: 'sunny-outline',                color: '#f59e0b', bg: '#fffbeb' },
 };
 
 const FALLBACK_META = { icon: 'ribbon-outline' as keyof typeof Ionicons.glyphMap, color: '#9ca3af', bg: '#f9fafb' };
@@ -60,7 +62,6 @@ function BadgeCard({ badge }: { badge: Badge }) {
         opacity: badge.earned ? 1 : 0.5,
       }}
     >
-      {/* Icon */}
       <View
         className="w-12 h-12 rounded-2xl items-center justify-center mb-3"
         style={{ backgroundColor: badge.earned ? meta.bg : '#f3f4f6' }}
@@ -72,7 +73,6 @@ function BadgeCard({ badge }: { badge: Badge }) {
         />
       </View>
 
-      {/* Name */}
       <Text
         className="text-sm font-bold mb-0.5"
         style={{ color: badge.earned ? '#111827' : '#9ca3af' }}
@@ -81,7 +81,6 @@ function BadgeCard({ badge }: { badge: Badge }) {
         {badge.name}
       </Text>
 
-      {/* Description */}
       <Text
         className="text-xs leading-4"
         style={{ color: badge.earned ? '#6b7280' : '#d1d5db' }}
@@ -90,7 +89,6 @@ function BadgeCard({ badge }: { badge: Badge }) {
         {badge.description}
       </Text>
 
-      {/* Earned date */}
       {badge.earned && earnedDate && (
         <View className="flex-row items-center mt-2">
           <Ionicons name="checkmark-circle" size={12} color={meta.color} style={{ marginRight: 3 }} />
@@ -100,6 +98,45 @@ function BadgeCard({ badge }: { badge: Badge }) {
         </View>
       )}
     </View>
+  );
+}
+
+// ─── Animated badge card (earned badges get staggered entrance) ───────────────
+
+function AnimatedBadgeCard({ badge, index }: { badge: Badge; index: number }) {
+  const scaleAnim = useRef(new Animated.Value(badge.earned ? 0.6 : 1)).current;
+  const opacityAnim = useRef(new Animated.Value(badge.earned ? 0 : 1)).current;
+
+  useEffect(() => {
+    if (!badge.earned) return;
+    const delay = Math.min(index * 50, 400);
+    Animated.parallel([
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 7,
+          tension: 100,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.sequence([
+        Animated.delay(delay),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]),
+    ]).start();
+  }, []);
+
+  if (!badge.earned) return <BadgeCard badge={badge} />;
+
+  return (
+    <Animated.View style={{ transform: [{ scale: scaleAnim }], opacity: opacityAnim }}>
+      <BadgeCard badge={badge} />
+    </Animated.View>
   );
 }
 
@@ -115,10 +152,10 @@ function BadgesHeader({ total, earned }: { total: number; earned: number }) {
         <Text className="text-gray-400 text-sm mt-0.5">Your achievements</Text>
       </View>
 
+      <OfflineBanner />
+
       {/* Summary card */}
-      <View
-        className="mx-5 mt-4 mb-2 bg-indigo-600 rounded-2xl p-5"
-      >
+      <View className="mx-5 mt-4 mb-2 bg-indigo-600 rounded-2xl p-5">
         <View className="flex-row items-center justify-between mb-4">
           <View>
             <Text className="text-indigo-200 text-sm font-medium">Badges earned</Text>
@@ -141,7 +178,6 @@ function BadgesHeader({ total, earned }: { total: number; earned: number }) {
           </View>
         </View>
 
-        {/* Progress bar */}
         <View style={{ height: 6, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 3 }}>
           <View
             style={{
@@ -155,31 +191,27 @@ function BadgesHeader({ total, earned }: { total: number; earned: number }) {
         <Text className="text-indigo-300 text-xs mt-2">{pct}% complete</Text>
       </View>
 
+      {/* Encouragement when no badges earned yet */}
+      {earned === 0 && total > 0 && (
+        <View
+          className="mx-5 mb-2 rounded-2xl px-4 py-4 flex-row items-center"
+          style={{ backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fde68a' }}
+        >
+          <Ionicons name="sparkles-outline" size={22} color="#d97706" style={{ marginRight: 12 }} />
+          <View className="flex-1">
+            <Text className="text-sm font-semibold" style={{ color: '#92400e' }}>
+              Start earning badges!
+            </Text>
+            <Text className="text-xs mt-0.5" style={{ color: '#b45309' }}>
+              Complete tasks and build your streak to unlock achievements
+            </Text>
+          </View>
+        </View>
+      )}
+
       <Text className="text-xs font-semibold text-gray-400 uppercase tracking-widest px-5 mb-1 mt-3">
         All Badges
       </Text>
-    </View>
-  );
-}
-
-// ─── Error state ─────────────────────────────────────────────────────────────
-
-function ErrorState({ onRetry }: { onRetry: () => void }) {
-  return (
-    <View className="flex-1 items-center justify-center px-8">
-      <Ionicons name="cloud-offline-outline" size={48} color="#d1d5db" />
-      <Text className="text-gray-700 font-semibold text-base mt-4 mb-1">
-        Couldn't load badges
-      </Text>
-      <Text className="text-gray-400 text-sm text-center mb-6">
-        Check your connection and try again
-      </Text>
-      <TouchableOpacity
-        onPress={onRetry}
-        className="bg-indigo-600 px-6 py-3 rounded-xl"
-      >
-        <Text className="text-white font-semibold">Retry</Text>
-      </TouchableOpacity>
     </View>
   );
 }
@@ -193,21 +225,8 @@ export default function BadgesScreen() {
     loadBadges();
   }, []);
 
-  if (isLoading && badges.length === 0) {
-    return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#4f46e5" />
-      </SafeAreaView>
-    );
-  }
-
-  if (error && badges.length === 0) {
-    return (
-      <SafeAreaView className="flex-1 bg-gray-50">
-        <ErrorState onRetry={loadBadges} />
-      </SafeAreaView>
-    );
-  }
+  if (isLoading && badges.length === 0) return <LoadingScreen />;
+  if (error && badges.length === 0) return <ErrorScreen onRetry={loadBadges} />;
 
   const earnedCount = badges.filter((b) => b.earned).length;
 
@@ -230,7 +249,9 @@ export default function BadgesScreen() {
         ListHeaderComponent={
           <BadgesHeader total={badges.length} earned={earnedCount} />
         }
-        renderItem={({ item }) => <BadgeCard badge={item} />}
+        renderItem={({ item, index }) => (
+          <AnimatedBadgeCard badge={item} index={index} />
+        )}
         contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
         columnWrapperStyle={{ paddingHorizontal: 4 }}

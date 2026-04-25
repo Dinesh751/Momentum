@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -10,6 +10,10 @@ import { useBadgeStore } from '../../store/badgeStore';
 import { useDailyPointsStore } from '../../store/dailyPointsStore';
 import { useStatsStore } from '../../store/statsStore';
 import { DEFAULT_DAILY_THRESHOLD } from '../../constants';
+import LoadingScreen from '../../components/LoadingScreen';
+import ErrorBanner from '../../components/ErrorBanner';
+import OfflineBanner from '../../components/OfflineBanner';
+import { localDateISO } from '../../utils/date';
 
 const getGreeting = () => {
   const h = new Date().getHours();
@@ -23,22 +27,44 @@ const formatDate = (date: Date) =>
 
 export default function DashboardScreen() {
   const user = useAuthStore((s) => s.user);
-  const { tasks, loadTasks } = useTaskStore();
-  const { streak, loadStreak } = useStreakStore();
-  const { badges, loadBadges } = useBadgeStore();
-  const { dailyPoints, loadForDate } = useDailyPointsStore();
-  const { overview, loadAll: loadStats } = useStatsStore();
+  const { tasks, isLoading: tasksLoading, error: tasksError, loadTasks } = useTaskStore();
+  const { streak, error: streakError, loadStreak } = useStreakStore();
+  const { badges, error: badgesError, loadBadges } = useBadgeStore();
+  const { dailyPoints, isLoading: pointsLoading, error: pointsError, loadForDate } = useDailyPointsStore();
+  const { overview, error: statsError, loadAll: loadStats } = useStatsStore();
   const navigation = useNavigation();
+  const [refreshing, setRefreshing] = useState(false);
 
-  const todayISO = new Date().toISOString().split('T')[0];
+  const todayISO = localDateISO();
 
-  useEffect(() => {
+  const loadAll = useCallback(() => {
     loadTasks();
     loadStreak();
     loadBadges();
     loadForDate(todayISO);
     loadStats();
+  }, [todayISO]);
+
+  useEffect(() => {
+    loadAll();
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.allSettled([
+      loadTasks(),
+      loadStreak(),
+      loadBadges(),
+      loadForDate(todayISO),
+      loadStats(),
+    ]);
+    setRefreshing(false);
+  }, [todayISO]);
+
+  const isInitialLoading = tasksLoading && tasks.length === 0 && !dailyPoints && pointsLoading;
+  const loadError = tasksError || pointsError || streakError || badgesError || statsError;
+
+  if (isInitialLoading) return <LoadingScreen />;
 
   const pointsEarned = tasks.filter((t) => t.completed).reduce((sum, t) => sum + t.points, 0);
   const completedCount = tasks.filter((t) => t.completed).length;
@@ -50,7 +76,17 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
+      <OfflineBanner />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 32 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#4f46e5" />
+        }
+      >
+        {loadError && (
+          <ErrorBanner message="Some data failed to load" onRetry={loadAll} />
+        )}
 
         {/* Header */}
         <View className="px-5 pt-4 pb-6">

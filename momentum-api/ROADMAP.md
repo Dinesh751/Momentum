@@ -69,20 +69,20 @@
 
 ---
 
-## Phase 6 — User Profile & Settings
-- [ ] `GET /api/v1/users/me` — fetch profile (name, email, join date, lifetime points)
-- [ ] `PUT /api/v1/users/me` — update display name
-- [ ] `PUT /api/v1/users/me/password` — change password (requires current password)
-- [ ] `DELETE /api/v1/users/me` — soft delete own account
-- [ ] Timezone support — store user timezone, use it for day boundary calculations
+## Phase 6 — User Profile & Settings ✅ Complete
+- [x] `GET /api/v1/users/me` — fetch profile (name, email, join date, lifetime points)
+- [x] `PUT /api/v1/users/me` — update display name
+- [x] `PUT /api/v1/users/me/password` — change password (requires current password)
+- [x] `DELETE /api/v1/users/me` — soft delete own account
+- [x] Timezone support — store user timezone, use it for day boundary calculations
 
 ---
 
-## Phase 7 — Stats & Analytics
-- [ ] `GET /api/v1/stats/overview` — lifetime points, current streak, badges earned, consistency %
-- [ ] `GET /api/v1/stats/weekly` — last 7 days: points per day, threshold met/not met
-- [ ] `GET /api/v1/stats/monthly` — last 30 days summary
-- [ ] `GET /api/v1/stats/tasks` — total tasks created, completed, completion rate by priority
+## Phase 7 — Stats & Analytics ✅ Complete
+- [x] `GET /api/v1/stats/overview` — lifetime points, current streak, badges earned, consistency %
+- [x] `GET /api/v1/stats/weekly` — last 7 days: points per day, threshold met/not met
+- [x] `GET /api/v1/stats/monthly` — last 30 days summary
+- [x] `GET /api/v1/stats/tasks` — total tasks created, completed, completion rate by priority
 
 ---
 

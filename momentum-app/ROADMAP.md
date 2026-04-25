@@ -17,8 +17,8 @@
 - [x] Stats screen — lifetime overview, points history bar chart (weekly/monthly), task breakdown by priority
 
 ## Phase 3 — Polish
-- [ ] Loading states and error handling across all screens
-- [ ] Empty states (no tasks added yet, no badges earned yet)
-- [ ] Animations and transitions (streak milestone, badge unlock)
-- [ ] Offline handling — graceful degradation when API is unreachable
+- [x] Loading states and error handling across all screens
+- [x] Empty states (no tasks added yet, no badges earned yet, no streak yet, no stats yet)
+- [x] Animations and transitions (streak milestone pulse, badge unlock entrance, animated progress bar)
+- [x] Offline handling — graceful degradation when API is unreachable
 - [ ] Styling overhaul — explore improved visual design (tracked in `feat/new-styling` branch)

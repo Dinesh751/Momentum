@@ -10,6 +10,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useStatsStore } from '../../store/statsStore';
 import { DailyStatEntry, PeriodStats } from '../../types';
+import LoadingScreen from '../../components/LoadingScreen';
+import ErrorScreen from '../../components/ErrorScreen';
+import OfflineBanner from '../../components/OfflineBanner';
 
 // ─── Bar chart ───────────────────────────────────────────────────────────────
 
@@ -173,23 +176,6 @@ function PriorityBar({
   );
 }
 
-// ─── Error state ──────────────────────────────────────────────────────────────
-
-function ErrorState({ onRetry }: { onRetry: () => void }) {
-  return (
-    <View className="flex-1 items-center justify-center px-8">
-      <Ionicons name="cloud-offline-outline" size={48} color="#d1d5db" />
-      <Text className="text-gray-700 font-semibold text-base mt-4 mb-1">Couldn't load stats</Text>
-      <Text className="text-gray-400 text-sm text-center mb-6">
-        Check your connection and try again
-      </Text>
-      <TouchableOpacity onPress={onRetry} className="bg-indigo-600 px-6 py-3 rounded-xl">
-        <Text className="text-white font-semibold">Retry</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
-
 // ─── Card wrapper ─────────────────────────────────────────────────────────────
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
@@ -222,23 +208,31 @@ export default function StatsScreen() {
     loadAll();
   }, []);
 
-  if (isLoading && !overview) {
-    return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#4f46e5" />
-      </SafeAreaView>
-    );
-  }
-
-  if (error && !overview) {
-    return (
-      <SafeAreaView className="flex-1 bg-gray-50">
-        <ErrorState onRetry={loadAll} />
-      </SafeAreaView>
-    );
-  }
+  if (isLoading && !overview) return <LoadingScreen />;
+  if (error && !overview) return <ErrorScreen onRetry={loadAll} />;
 
   const periodData = period === 'weekly' ? weekly : monthly;
+
+  if (!overview && !isLoading) {
+    return (
+      <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">
+        <View className="px-5 pt-4 pb-4">
+          <Text className="text-2xl font-bold text-gray-900">Stats</Text>
+          <Text className="text-gray-400 text-sm mt-0.5">Your performance at a glance</Text>
+        </View>
+        <OfflineBanner />
+        <View className="flex-1 items-center justify-center px-8">
+          <View className="w-16 h-16 bg-indigo-50 rounded-2xl items-center justify-center mb-4">
+            <Ionicons name="bar-chart-outline" size={32} color="#a5b4fc" />
+          </View>
+          <Text className="text-gray-700 font-semibold text-base mb-2">No stats yet</Text>
+          <Text className="text-gray-400 text-sm text-center">
+            Complete some tasks to start tracking your performance
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
   const totalPriorityCompleted = taskStats
     ? Number(taskStats.highCompleted) + Number(taskStats.midCompleted) +
       Number(taskStats.lowCompleted) + Number(taskStats.noneCompleted)
@@ -246,6 +240,7 @@ export default function StatsScreen() {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">
+      <OfflineBanner />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
 
         {/* Header */}

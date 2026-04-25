@@ -1,15 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   ScrollView,
-  ActivityIndicator,
-  TouchableOpacity,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useStreakStore } from '../../store/streakStore';
-import { StreakStage } from '../../types';
+import { Streak, StreakStage } from '../../types';
+import LoadingScreen from '../../components/LoadingScreen';
+import ErrorScreen from '../../components/ErrorScreen';
+import OfflineBanner from '../../components/OfflineBanner';
 
 // ─── Stage config ────────────────────────────────────────────────────────────
 
@@ -47,13 +49,14 @@ const STAGE_CONFIG: Record<
   },
 };
 
-// Milestone day targets per stage (used for the progress arc)
 const STAGE_MILESTONES: Record<StreakStage, number> = {
   BEGINNER: 7,
   BUILDING: 14,
   HABIT: 30,
   COMMITTED: 100,
 };
+
+const MILESTONE_DAYS = [7, 14, 30, 100];
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
@@ -91,57 +94,85 @@ function StatCard({
   );
 }
 
-function ErrorState({ onRetry }: { onRetry: () => void }) {
+// ─── Empty state ─────────────────────────────────────────────────────────────
+
+function EmptyStreakState() {
   return (
-    <View className="flex-1 items-center justify-center px-8">
-      <Ionicons name="cloud-offline-outline" size={48} color="#d1d5db" />
-      <Text className="text-gray-700 font-semibold text-base mt-4 mb-1">
-        Couldn't load streak
-      </Text>
-      <Text className="text-gray-400 text-sm text-center mb-6">
-        Check your connection and try again
-      </Text>
-      <TouchableOpacity
-        onPress={onRetry}
-        className="bg-indigo-600 px-6 py-3 rounded-xl"
-      >
-        <Text className="text-white font-semibold">Retry</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">
+      <View className="px-5 pt-4 pb-2">
+        <Text className="text-2xl font-bold text-gray-900">Streak</Text>
+        <Text className="text-gray-400 text-sm mt-0.5">Keep the momentum going</Text>
+      </View>
+      <OfflineBanner />
+      <View className="flex-1 items-center justify-center px-8">
+        <View
+          className="w-20 h-20 rounded-3xl items-center justify-center mb-5"
+          style={{ backgroundColor: '#fff7ed' }}
+        >
+          <Ionicons name="flame-outline" size={40} color="#fdba74" />
+        </View>
+        <Text className="text-gray-800 font-bold text-lg mb-2 text-center">
+          Start your streak today
+        </Text>
+        <Text className="text-gray-400 text-sm text-center" style={{ lineHeight: 20 }}>
+          Complete enough tasks to hit your daily goal. Your streak begins the moment you meet today's threshold!
+        </Text>
+      </View>
+    </SafeAreaView>
   );
 }
 
-// ─── Main screen ─────────────────────────────────────────────────────────────
+// ─── Streak content (with animations) ────────────────────────────────────────
 
-export default function StreaksScreen() {
-  const { streak, isLoading, error, loadStreak } = useStreakStore();
-
-  useEffect(() => {
-    loadStreak();
-  }, []);
-
-  if (isLoading && !streak) {
-    return (
-      <SafeAreaView className="flex-1 bg-gray-50 items-center justify-center">
-        <ActivityIndicator size="large" color="#4f46e5" />
-      </SafeAreaView>
-    );
-  }
-
-  if (error && !streak) {
-    return (
-      <SafeAreaView className="flex-1 bg-gray-50">
-        <ErrorState onRetry={loadStreak} />
-      </SafeAreaView>
-    );
-  }
-
-  if (!streak) return null;
-
+function StreakContent({ streak }: { streak: Streak }) {
   const stage = STAGE_CONFIG[streak.streakStage];
   const milestone = STAGE_MILESTONES[streak.streakStage];
   const progressToNextStage = Math.min(streak.currentStreak / milestone, 1);
   const daysToNextStage = Math.max(milestone - streak.currentStreak, 0);
+  const isMilestone = MILESTONE_DAYS.includes(streak.currentStreak);
+
+  const progressAnim = useRef(new Animated.Value(0)).current;
+  const streakScaleAnim = useRef(new Animated.Value(0.75)).current;
+
+  useEffect(() => {
+    // Animate progress bar fill
+    Animated.timing(progressAnim, {
+      toValue: progressToNextStage,
+      duration: 900,
+      delay: 300,
+      useNativeDriver: false,
+    }).start();
+
+    // Scale-in the streak number, then pulse if it's a milestone
+    const springIn = Animated.spring(streakScaleAnim, {
+      toValue: 1,
+      friction: 7,
+      tension: 80,
+      useNativeDriver: true,
+    });
+
+    if (isMilestone) {
+      springIn.start(() => {
+        Animated.sequence([
+          Animated.delay(300),
+          Animated.spring(streakScaleAnim, {
+            toValue: 1.12,
+            friction: 3,
+            tension: 120,
+            useNativeDriver: true,
+          }),
+          Animated.spring(streakScaleAnim, {
+            toValue: 1,
+            friction: 5,
+            tension: 80,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
+    } else {
+      springIn.start();
+    }
+  }, []);
 
   const lastActive = streak.lastActivityDate
     ? new Date(streak.lastActivityDate + 'T12:00:00').toLocaleDateString('en-US', {
@@ -153,6 +184,7 @@ export default function StreaksScreen() {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-gray-50">
+      <OfflineBanner />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 32 }}
@@ -163,7 +195,7 @@ export default function StreaksScreen() {
           <Text className="text-gray-400 text-sm mt-0.5">Keep the momentum going</Text>
         </View>
 
-        {/* Hero card — current streak */}
+        {/* Hero card */}
         <View
           className="mx-5 mt-4 rounded-2xl p-6"
           style={{ backgroundColor: stage.color }}
@@ -176,16 +208,38 @@ export default function StreaksScreen() {
               <Ionicons name={stage.icon} size={20} color="white" />
             </View>
             <Text className="text-white font-semibold text-base">{stage.label}</Text>
+            {isMilestone && (
+              <View
+                style={{
+                  backgroundColor: 'rgba(255,255,255,0.2)',
+                  borderRadius: 999,
+                  paddingHorizontal: 10,
+                  paddingVertical: 3,
+                  marginLeft: 8,
+                }}
+              >
+                <Text style={{ color: 'white', fontSize: 12, fontWeight: '700' }}>
+                  🎉 Milestone!
+                </Text>
+              </View>
+            )}
           </View>
 
-          <View className="flex-row items-baseline mb-1">
-            <Text className="text-white font-bold" style={{ fontSize: 64, lineHeight: 72 }}>
+          <Animated.View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              marginBottom: 4,
+              transform: [{ scale: streakScaleAnim }],
+            }}
+          >
+            <Text style={{ color: 'white', fontWeight: '700', fontSize: 64, lineHeight: 72 }}>
               {streak.currentStreak}
             </Text>
-            <Text className="text-white text-lg ml-2 opacity-80">
+            <Text style={{ color: 'white', fontSize: 18, marginLeft: 8, opacity: 0.8 }}>
               {streak.currentStreak === 1 ? 'day' : 'days'}
             </Text>
-          </View>
+          </Animated.View>
           <Text className="text-white opacity-70 text-sm mb-5">current streak</Text>
 
           {/* Progress bar toward next stage */}
@@ -207,12 +261,15 @@ export default function StreaksScreen() {
                 borderRadius: 3,
               }}
             >
-              <View
+              <Animated.View
                 style={{
                   height: 6,
                   backgroundColor: 'white',
                   borderRadius: 3,
-                  width: `${progressToNextStage * 100}%`,
+                  width: progressAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ['0%', '100%'],
+                  }),
                 }}
               />
             </View>
@@ -289,7 +346,6 @@ export default function StreaksScreen() {
 
             return (
               <View key={s} className="flex-row items-start">
-                {/* Timeline dot + line */}
                 <View className="items-center mr-4" style={{ width: 20 }}>
                   <View
                     style={{
@@ -321,7 +377,6 @@ export default function StreaksScreen() {
                   )}
                 </View>
 
-                {/* Stage info */}
                 <View className="flex-1 pb-6">
                   <View className="flex-row items-center">
                     <Text
@@ -354,7 +409,12 @@ export default function StreaksScreen() {
             className="mx-5 mt-4 rounded-2xl px-5 py-4 flex-row items-center"
             style={{ backgroundColor: stage.bg }}
           >
-            <Ionicons name="arrow-forward-circle-outline" size={22} color={stage.color} style={{ marginRight: 12 }} />
+            <Ionicons
+              name="arrow-forward-circle-outline"
+              size={22}
+              color={stage.color}
+              style={{ marginRight: 12 }}
+            />
             <Text className="text-sm flex-1" style={{ color: stage.color, fontWeight: '600' }}>
               {stage.next}
             </Text>
@@ -363,4 +423,20 @@ export default function StreaksScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+// ─── Main screen ─────────────────────────────────────────────────────────────
+
+export default function StreaksScreen() {
+  const { streak, isLoading, error, loadStreak } = useStreakStore();
+
+  useEffect(() => {
+    loadStreak();
+  }, []);
+
+  if (isLoading && !streak) return <LoadingScreen />;
+  if (error && !streak) return <ErrorScreen onRetry={loadStreak} />;
+  if (!streak) return <EmptyStreakState />;
+
+  return <StreakContent streak={streak} />;
 }

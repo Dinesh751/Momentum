@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '../constants';
+import { useNetworkStore } from '../store/networkStore';
 
 type LogoutCallback = () => void;
 let onForceLogout: LogoutCallback | null = null;
@@ -26,8 +27,15 @@ let isRefreshing = false;
 let pendingRequests: Array<(token: string) => void> = [];
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    useNetworkStore.getState().setOffline(false);
+    return response;
+  },
   async (error) => {
+    if (!error.response) {
+      useNetworkStore.getState().setOffline(true);
+    }
+
     const original = error.config;
 
     if (error.response?.status !== 401 || original._retry) {
