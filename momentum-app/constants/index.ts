@@ -7,7 +7,7 @@ const getApiBaseUrl = () => {
     const host = Constants.expoConfig?.hostUri?.split(':')[0] ?? 'localhost';
     return `http://${host}:8080/api/v1`;
   }
-  return 'https://api.momentum.app/api/v1';
+  return 'https://momentum-production-0e7d.up.railway.app/api/v1';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
