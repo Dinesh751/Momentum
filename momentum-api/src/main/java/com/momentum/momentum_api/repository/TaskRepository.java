@@ -47,4 +47,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByRecurringGroupIdAndCompletedTrue(UUID recurringGroupId);
 
     List<Task> findAllByUserAndDueDateIsNullOrderByCreatedAtDesc(User user);
+
+    boolean existsByRecurringGroupIdAndDueDate(UUID recurringGroupId, LocalDate dueDate);
 }

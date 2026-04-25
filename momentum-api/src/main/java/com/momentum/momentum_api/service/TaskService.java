@@ -4,10 +4,13 @@ import com.momentum.momentum_api.dto.task.CreateTaskRequest;
 import com.momentum.momentum_api.dto.task.SeriesSummaryResponse;
 import com.momentum.momentum_api.dto.task.TaskResponse;
 import com.momentum.momentum_api.dto.task.UpdateTaskRequest;
+import com.momentum.momentum_api.entity.RecurringSeries;
 import com.momentum.momentum_api.entity.Task;
 import com.momentum.momentum_api.entity.User;
+import com.momentum.momentum_api.enums.TaskPriority;
 import com.momentum.momentum_api.exception.InvalidCredentialsException;
 import com.momentum.momentum_api.exception.TaskNotFoundException;
+import com.momentum.momentum_api.repository.RecurringSeriesRepository;
 import com.momentum.momentum_api.repository.TaskRepository;
 import com.momentum.momentum_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,8 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final RecurringSeriesRepository recurringSeriesRepository;
+    private final RecurringMaterializationService recurringMaterializationService;
     private final DailyPointsService dailyPointsService;
     private final BadgeService badgeService;
 
@@ -45,7 +50,7 @@ public class TaskService {
                 .user(user)
                 .title(request.getTitle())
                 .description(request.getDescription())
-                .priority(request.getPriority() != null ? request.getPriority() : com.momentum.momentum_api.enums.TaskPriority.NONE)
+                .priority(request.getPriority() != null ? request.getPriority() : TaskPriority.NONE)
                 .dueDate(request.getDueDate())
                 .recurring(false)
                 .build();
@@ -68,36 +73,44 @@ public class TaskService {
         UUID groupId = UUID.randomUUID();
         LocalDate today = LocalDate.now();
 
+        RecurringSeries series = RecurringSeries.builder()
+                .groupId(groupId)
+                .user(user)
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .priority(request.getPriority() != null ? request.getPriority() : TaskPriority.NONE)
+                .recurringDays(days)
+                .startDate(start)
+                .endDate(end)
+                .build();
+        recurringSeriesRepository.save(series);
+
+        // Only create task rows for past and present dates — future dates are created on-demand
+        LocalDate materializeUpTo = today.isAfter(end) ? end : today;
         List<Task> tasks = new ArrayList<>();
-        LocalDate cursor = start;
-        while (!cursor.isAfter(end)) {
-            if (days.contains(cursor.getDayOfWeek())) {
-                tasks.add(Task.builder()
-                        .user(user)
-                        .title(request.getTitle())
-                        .description(request.getDescription())
-                        .priority(request.getPriority() != null ? request.getPriority() : com.momentum.momentum_api.enums.TaskPriority.NONE)
-                        .dueDate(cursor)
-                        .recurring(true)
-                        .recurringDays(days)
-                        .recurringGroupId(groupId)
-                        .build());
+
+        if (!start.isAfter(materializeUpTo)) {
+            LocalDate cursor = start;
+            while (!cursor.isAfter(materializeUpTo)) {
+                if (days.contains(cursor.getDayOfWeek())) {
+                    tasks.add(buildTaskFromSeries(user, series, cursor, days));
+                }
+                cursor = cursor.plusDays(1);
             }
-            cursor = cursor.plusDays(1);
         }
 
-        if (tasks.isEmpty()) {
-            throw new IllegalArgumentException("No occurrences found in the given date range for the selected days");
+        if (tasks.isEmpty() && start.isAfter(today)) {
+            // Series starts in the future — no rows yet, will be created when user views those dates
+            return List.of();
         }
 
-        taskRepository.saveAll(tasks);
-
-        // Sync daily points only for past/present dates to avoid creating unnecessary future records
-        tasks.stream()
-                .map(Task::getDueDate)
-                .filter(d -> !d.isAfter(today))
-                .distinct()
-                .forEach(d -> dailyPointsService.sync(user, d));
+        if (!tasks.isEmpty()) {
+            taskRepository.saveAll(tasks);
+            tasks.stream()
+                    .map(Task::getDueDate)
+                    .distinct()
+                    .forEach(d -> dailyPointsService.sync(user, d));
+        }
 
         return tasks.stream().map(TaskResponse::from).toList();
     }
@@ -106,17 +119,16 @@ public class TaskService {
     public SeriesSummaryResponse getSeriesSummary(String email, UUID groupId) {
         resolveUser(email);
 
-        Optional<Task> first = taskRepository.findFirstByRecurringGroupIdOrderByDueDateAsc(groupId);
-        Optional<Task> last = taskRepository.findFirstByRecurringGroupIdOrderByDueDateDesc(groupId);
+        RecurringSeries series = recurringSeriesRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new TaskNotFoundException(-1L));
 
-        if (first.isEmpty()) {
-            throw new TaskNotFoundException(-1L);
-        }
+        Set<DayOfWeek> days = series.getRecurringDays();
+        LocalDate firstDate = firstOccurrence(series.getStartDate(), series.getEndDate(), days);
+        LocalDate lastDate = lastOccurrence(series.getStartDate(), series.getEndDate(), days);
 
-        long total = taskRepository.countByRecurringGroupId(groupId);
+        long total = countOccurrences(series.getStartDate(), series.getEndDate(), days);
         long completed = taskRepository.countByRecurringGroupIdAndCompletedTrue(groupId);
 
-        Set<DayOfWeek> days = first.get().getRecurringDays();
         String pattern = days == null || days.isEmpty() ? "Custom" :
                 days.stream()
                         .sorted(Comparator.comparingInt(DayOfWeek::getValue))
@@ -126,8 +138,8 @@ public class TaskService {
         return SeriesSummaryResponse.builder()
                 .recurringGroupId(groupId.toString())
                 .pattern(pattern)
-                .firstDate(first.get().getDueDate())
-                .lastDate(last.get().getDueDate())
+                .firstDate(firstDate)
+                .lastDate(lastDate)
                 .totalOccurrences(total)
                 .completedOccurrences(completed)
                 .remainingOccurrences(total - completed)
@@ -144,7 +156,6 @@ public class TaskService {
 
         Set<LocalDate> affectedDates = toDelete.stream().map(Task::getDueDate).collect(Collectors.toSet());
 
-        // Reverse completed points for any completed tasks being deleted
         int pointsToRemove = toDelete.stream()
                 .filter(Task::isCompleted)
                 .mapToInt(Task::getPoints)
@@ -155,6 +166,20 @@ public class TaskService {
         }
 
         taskRepository.deleteAll(toDelete);
+
+        if (from == null) {
+            recurringSeriesRepository.deleteByGroupId(groupId);
+        } else {
+            recurringSeriesRepository.findByGroupId(groupId).ifPresent(series -> {
+                LocalDate newEnd = from.minusDays(1);
+                if (newEnd.isBefore(series.getStartDate())) {
+                    recurringSeriesRepository.delete(series);
+                } else {
+                    series.setEndDate(newEnd);
+                    recurringSeriesRepository.save(series);
+                }
+            });
+        }
 
         LocalDate today = LocalDate.now();
         affectedDates.stream()
@@ -171,9 +196,11 @@ public class TaskService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
+    // Lazy materialization: task rows for recurring series are created on first view of a date
+    @Transactional
     public List<TaskResponse> getTasksByDate(String email, LocalDate date) {
         User user = resolveUser(email);
+        recurringMaterializationService.materializeForUserOnDate(user, date);
         return taskRepository.findAllByUserAndDueDateOrderByCreatedAtAsc(user, date)
                 .stream()
                 .map(TaskResponse::from)
@@ -275,6 +302,47 @@ public class TaskService {
     }
 
     // -------------------------------------------------------------------------
+
+    private long countOccurrences(LocalDate start, LocalDate end, Set<DayOfWeek> days) {
+        long count = 0;
+        LocalDate cursor = start;
+        while (!cursor.isAfter(end)) {
+            if (days.contains(cursor.getDayOfWeek())) count++;
+            cursor = cursor.plusDays(1);
+        }
+        return count;
+    }
+
+    private LocalDate firstOccurrence(LocalDate start, LocalDate end, Set<DayOfWeek> days) {
+        LocalDate cursor = start;
+        while (!cursor.isAfter(end)) {
+            if (days.contains(cursor.getDayOfWeek())) return cursor;
+            cursor = cursor.plusDays(1);
+        }
+        return start;
+    }
+
+    private LocalDate lastOccurrence(LocalDate start, LocalDate end, Set<DayOfWeek> days) {
+        LocalDate cursor = end;
+        while (!cursor.isBefore(start)) {
+            if (days.contains(cursor.getDayOfWeek())) return cursor;
+            cursor = cursor.minusDays(1);
+        }
+        return end;
+    }
+
+    private Task buildTaskFromSeries(User user, RecurringSeries series, LocalDate date, Set<DayOfWeek> days) {
+        return Task.builder()
+                .user(user)
+                .title(series.getTitle())
+                .description(series.getDescription())
+                .priority(series.getPriority())
+                .dueDate(date)
+                .recurring(true)
+                .recurringDays(days)
+                .recurringGroupId(series.getGroupId())
+                .build();
+    }
 
     private User resolveUser(String email) {
         return userRepository.findByEmailAndDeletedAtIsNull(email)
