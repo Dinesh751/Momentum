@@ -15,8 +15,8 @@ const taskService = {
     return data.data;
   },
 
-  create: async (payload: CreateTaskPayload): Promise<Task> => {
-    const { data } = await api.post<ApiResponse<Task>>('/tasks', payload);
+  create: async (payload: CreateTaskPayload): Promise<Task[]> => {
+    const { data } = await api.post<ApiResponse<Task[]>>('/tasks', payload);
     return data.data;
   },
 

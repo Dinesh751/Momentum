@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
@@ -32,4 +33,16 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     long countByUser(User user);
 
     long countByUserAndPriorityAndCompletedTrue(User user, TaskPriority priority);
+
+    List<Task> findAllByRecurringGroupIdOrderByDueDateAsc(UUID recurringGroupId);
+
+    List<Task> findAllByRecurringGroupIdAndDueDateGreaterThanEqualOrderByDueDateAsc(UUID recurringGroupId, LocalDate from);
+
+    Optional<Task> findFirstByRecurringGroupIdOrderByDueDateAsc(UUID recurringGroupId);
+
+    Optional<Task> findFirstByRecurringGroupIdOrderByDueDateDesc(UUID recurringGroupId);
+
+    long countByRecurringGroupId(UUID recurringGroupId);
+
+    long countByRecurringGroupIdAndCompletedTrue(UUID recurringGroupId);
 }

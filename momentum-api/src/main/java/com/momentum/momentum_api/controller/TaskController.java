@@ -2,6 +2,7 @@ package com.momentum.momentum_api.controller;
 
 import com.momentum.momentum_api.dto.common.ApiResponse;
 import com.momentum.momentum_api.dto.task.CreateTaskRequest;
+import com.momentum.momentum_api.dto.task.SeriesSummaryResponse;
 import com.momentum.momentum_api.dto.task.TaskResponse;
 import com.momentum.momentum_api.dto.task.UpdateTaskRequest;
 import com.momentum.momentum_api.service.TaskService;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/tasks")
@@ -25,11 +27,11 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<TaskResponse>> createTask(
+    public ResponseEntity<ApiResponse<List<TaskResponse>>> createTask(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody CreateTaskRequest request) {
 
-        TaskResponse response = taskService.createTask(userDetails.getUsername(), request);
+        List<TaskResponse> response = taskService.createTask(userDetails.getUsername(), request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.ok("Task created", response));
     }
@@ -89,5 +91,24 @@ public class TaskController {
 
         TaskResponse response = taskService.uncompleteTask(userDetails.getUsername(), id);
         return ResponseEntity.ok(ApiResponse.ok("Task marked incomplete", response));
+    }
+
+    @GetMapping("/series/{groupId}")
+    public ResponseEntity<ApiResponse<SeriesSummaryResponse>> getSeriesSummary(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable UUID groupId) {
+
+        SeriesSummaryResponse response = taskService.getSeriesSummary(userDetails.getUsername(), groupId);
+        return ResponseEntity.ok(ApiResponse.ok("Series retrieved", response));
+    }
+
+    @DeleteMapping("/series/{groupId}")
+    public ResponseEntity<Void> deleteSeries(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable UUID groupId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from) {
+
+        taskService.deleteSeries(userDetails.getUsername(), groupId, from);
+        return ResponseEntity.noContent().build();
     }
 }

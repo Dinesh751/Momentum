@@ -20,6 +20,9 @@ import taskService from '../../services/taskService';
 import { DEFAULT_DAILY_THRESHOLD } from '../../constants';
 import { Task, Priority } from '../../types';
 import AddTaskModal from './AddTaskModal';
+import OfflineBanner from '../../components/OfflineBanner';
+import SeriesBottomSheet from '../../components/SeriesBottomSheet';
+import { localDateISO, offsetLocalDateISO } from '../../utils/date';
 
 const PRIORITY_COLORS: Record<Priority, { text: string; bg: string }> = {
   HIGH: { text: '#ef4444', bg: '#fef2f2' },
@@ -28,13 +31,8 @@ const PRIORITY_COLORS: Record<Priority, { text: string; bg: string }> = {
   NONE: { text: '#9ca3af', bg: '#f9fafb' },
 };
 
-const todayISO = () => new Date().toISOString().split('T')[0];
-
-const offsetDateISO = (dateStr: string, days: number) => {
-  const d = new Date(dateStr + 'T12:00:00');
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
-};
+const todayISO = () => localDateISO();
+const offsetDateISO = (dateStr: string, days: number) => offsetLocalDateISO(dateStr, days);
 
 const formatDateLabel = (dateStr: string) => {
   const today = todayISO();
@@ -71,6 +69,7 @@ function TaskCard({
   onToggle,
   onDelete,
   onMoveToTomorrow,
+  onSeriesTap,
   isToday,
   isCarriedOver,
 }: {
@@ -78,6 +77,7 @@ function TaskCard({
   onToggle: () => void;
   onDelete: () => void;
   onMoveToTomorrow: () => void;
+  onSeriesTap: (task: Task) => void;
   isToday: boolean;
   isCarriedOver: boolean;
 }) {
@@ -130,16 +130,33 @@ function TaskCard({
             >
               {task.title}
             </Text>
-            {isCarriedOver && (
-              <View
-                className="self-start flex-row items-center mt-1 px-2 py-0.5 rounded-md"
-                style={{ backgroundColor: '#fef3c7' }}
-              >
-                <Ionicons name="time-outline" size={10} color="#d97706" style={{ marginRight: 3 }} />
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#d97706' }}>
-                  Carried over
-                </Text>
-              </View>
+            {(isCarriedOver || !!task.recurringGroupId) && (
+            <View className="flex-row flex-wrap mt-1" style={{ gap: 4 }}>
+              {isCarriedOver && (
+                <View
+                  className="self-start flex-row items-center px-2 py-0.5 rounded-md"
+                  style={{ backgroundColor: '#fef3c7' }}
+                >
+                  <Ionicons name="time-outline" size={10} color="#d97706" style={{ marginRight: 3 }} />
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#d97706' }}>
+                    Carried over
+                  </Text>
+                </View>
+              )}
+              {task.recurringGroupId && (
+                <TouchableOpacity
+                  onPress={() => onSeriesTap(task)}
+                  className="self-start flex-row items-center px-2 py-0.5 rounded-md"
+                  style={{ backgroundColor: '#eef2ff' }}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <Ionicons name="repeat" size={10} color="#4f46e5" style={{ marginRight: 3 }} />
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#4f46e5' }}>
+                    Recurring
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
             )}
             {task.description ? (
               <Text
@@ -166,7 +183,11 @@ function TaskCard({
             <Text className="text-xs font-medium text-gray-400">{task.points} pts</Text>
           </View>
 
-          <Pressable onPress={onDelete} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Pressable
+            onPress={task.completed ? undefined : onDelete}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ opacity: task.completed ? 0.3 : 1 }}
+          >
             <Ionicons name="trash-outline" size={18} color="#d1d5db" />
           </Pressable>
         </View>
@@ -341,6 +362,7 @@ function CarryOverPrompt({
   onSkip,
   isConfirming,
   isRangeLoading,
+  rangeError,
 }: {
   tasks: Task[];
   selectedRange: DayRange;
@@ -349,6 +371,7 @@ function CarryOverPrompt({
   onSkip: () => void;
   isConfirming: boolean;
   isRangeLoading: boolean;
+  rangeError: string | null;
 }) {
   const [selectedIds, setSelectedIds] = useState<number[]>(() => tasks.map((t) => t.id));
 
@@ -416,6 +439,8 @@ function CarryOverPrompt({
           <ScrollView style={{ maxHeight: 200 }} className="px-6">
             {isRangeLoading ? (
               <ActivityIndicator color="#6366f1" style={{ paddingVertical: 24 }} />
+            ) : rangeError ? (
+              <Text className="text-center text-red-400 text-sm py-6">{rangeError}</Text>
             ) : tasks.length === 0 ? (
               <Text className="text-center text-gray-400 text-sm py-6">
                 No incomplete tasks in this range
@@ -520,10 +545,12 @@ export default function TasksScreen() {
   } = useTaskStore();
   const loadDailyPoints = useDailyPointsStore((s) => s.loadForDate);
   const [modalVisible, setModalVisible] = useState(false);
+  const [seriesTask, setSeriesTask] = useState<Task | null>(null);
   const [carryOverTasks, setCarryOverTasks] = useState<Task[]>([]);
   const [carryOverLoading, setCarryOverLoading] = useState(false);
   const [carryOverRange, setCarryOverRange] = useState<DayRange>('3d');
   const [isRangeLoading, setIsRangeLoading] = useState(false);
+  const [rangeError, setRangeError] = useState<string | null>(null);
   const isPast = selectedDate < todayISO();
 
   useEffect(() => {
@@ -543,11 +570,15 @@ export default function TasksScreen() {
   const handleRangeChange = async (range: DayRange) => {
     setCarryOverRange(range);
     setIsRangeLoading(true);
+    setRangeError(null);
     try {
       const fetched = await taskService.getIncompleteBefore(todayISO(), afterDateForRange(range));
       setCarryOverTasks(fetched);
-    } catch {}
-    finally { setIsRangeLoading(false); }
+    } catch {
+      setRangeError('Failed to load tasks for this range');
+    } finally {
+      setIsRangeLoading(false);
+    }
   };
 
   const goToPrevDay = useCallback(() => {
@@ -567,6 +598,7 @@ export default function TasksScreen() {
           </View>
         ) : (
           <View className="flex-1">
+            <OfflineBanner />
             <FlatList
               data={tasks}
               keyExtractor={(item) => item.id.toString()}
@@ -578,6 +610,7 @@ export default function TasksScreen() {
                   onToggle={() => toggleComplete(item)}
                   onDelete={() => deleteTask(item.id)}
                   onMoveToTomorrow={() => moveToTomorrow(item.id)}
+                  onSeriesTap={setSeriesTask}
                   isToday={selectedDate === todayISO()}
                   isCarriedOver={carriedOverIds.includes(item.id)}
                 />
@@ -621,7 +654,24 @@ export default function TasksScreen() {
         )}
       </SafeAreaView>
 
-      <AddTaskModal visible={modalVisible} onClose={() => setModalVisible(false)} />
+      <AddTaskModal visible={modalVisible} onClose={() => setModalVisible(false)} selectedDate={selectedDate} />
+
+      {seriesTask?.recurringGroupId && (
+        <SeriesBottomSheet
+          visible={!!seriesTask}
+          groupId={seriesTask.recurringGroupId}
+          fromDate={
+            seriesTask.completed && seriesTask.dueDate === todayISO()
+              ? offsetDateISO(todayISO(), 1)
+              : todayISO()
+          }
+          onClose={() => setSeriesTask(null)}
+          onDeleted={() => {
+            setSeriesTask(null);
+            loadTasks(selectedDate);
+          }}
+        />
+      )}
 
       {carryOverTasks.length > 0 && (
         <CarryOverPrompt
@@ -630,6 +680,7 @@ export default function TasksScreen() {
           onRangeChange={handleRangeChange}
           isConfirming={carryOverLoading}
           isRangeLoading={isRangeLoading}
+          rangeError={rangeError}
           onConfirm={async (selectedIds) => {
             setCarryOverLoading(true);
             const toMove = carryOverTasks.filter((t) => selectedIds.includes(t.id));

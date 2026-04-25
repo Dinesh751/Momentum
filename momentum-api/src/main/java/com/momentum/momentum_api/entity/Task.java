@@ -1,12 +1,15 @@
 package com.momentum.momentum_api.entity;
 
-import com.momentum.momentum_api.enums.RecurrenceType;
+import com.momentum.momentum_api.converter.DayOfWeekSetConverter;
 import com.momentum.momentum_api.enums.TaskPriority;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "tasks")
@@ -54,9 +57,12 @@ public class Task {
     @Builder.Default
     private boolean recurring = false;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "recurrence_type")
-    private RecurrenceType recurrenceType;
+    @Convert(converter = DayOfWeekSetConverter.class)
+    @Column(name = "recurring_days")
+    private Set<DayOfWeek> recurringDays;
+
+    @Column(name = "recurring_group_id")
+    private UUID recurringGroupId;
 
     @Column(name = "snoozed_until")
     private OffsetDateTime snoozedUntil;

@@ -1,11 +1,12 @@
 package com.momentum.momentum_api.dto.task;
 
-import com.momentum.momentum_api.enums.RecurrenceType;
 import com.momentum.momentum_api.enums.TaskPriority;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.Set;
 
 @Getter
 public class UpdateTaskRequest {
@@ -22,5 +23,5 @@ public class UpdateTaskRequest {
 
     private Boolean recurring;
 
-    private RecurrenceType recurrenceType;
+    private Set<DayOfWeek> recurringDays;
 }

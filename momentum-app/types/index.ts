@@ -1,5 +1,5 @@
 export type Priority = 'HIGH' | 'MID' | 'LOW' | 'NONE';
-export type RecurrenceType = 'DAILY' | 'WEEKLY' | 'MONTHLY';
+export type DayOfWeek = 'MONDAY' | 'TUESDAY' | 'WEDNESDAY' | 'THURSDAY' | 'FRIDAY' | 'SATURDAY' | 'SUNDAY';
 
 export interface User {
   email: string;
@@ -16,7 +16,8 @@ export interface Task {
   completed: boolean;
   completedAt?: string;
   recurring: boolean;
-  recurrenceType?: RecurrenceType;
+  recurringDays: DayOfWeek[];
+  recurringGroupId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -27,7 +28,19 @@ export interface CreateTaskPayload {
   priority?: Priority;
   dueDate?: string;
   recurring?: boolean;
-  recurrenceType?: RecurrenceType;
+  recurringDays?: DayOfWeek[];
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface SeriesSummary {
+  recurringGroupId: string;
+  pattern: string;
+  firstDate: string;
+  lastDate: string;
+  totalOccurrences: number;
+  completedOccurrences: number;
+  remainingOccurrences: number;
 }
 
 export interface UpdateTaskPayload {
@@ -36,7 +49,7 @@ export interface UpdateTaskPayload {
   priority?: Priority;
   dueDate?: string;
   recurring?: boolean;
-  recurrenceType?: RecurrenceType;
+  recurringDays?: DayOfWeek[];
 }
 
 export interface ApiResponse<T> {
