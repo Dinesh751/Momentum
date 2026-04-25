@@ -42,7 +42,8 @@ public class StatsService {
 
         long badgesEarned = userBadgeRepository.countByUser(user);
 
-        List<DailyPoints> allDays = dailyPointsRepository.findAllByUser(user);
+        List<DailyPoints> allDays = dailyPointsRepository.findAllByUserAndDateBetween(
+                user, LocalDate.of(2000, 1, 1), LocalDate.now());
         double consistency = computeConsistency(allDays);
 
         return StatsOverviewResponse.builder()
@@ -105,13 +106,12 @@ public class StatsService {
     }
 
     private double computeConsistency(List<DailyPoints> days) {
-        if (days.isEmpty()) return 0;
-        int earned = days.stream().mapToInt(DailyPoints::getPointsEarned).sum();
-        int denominator = days.stream()
-                .mapToInt(dp -> Math.max(dp.getThresholdPts(), dp.getTotalPossiblePts()))
-                .sum();
-        if (denominator == 0) return 0;
-        return Math.round((double) earned / denominator * 100 * 10.0) / 10.0;
+        List<DailyPoints> evaluated = days.stream()
+                .filter(dp -> !dp.isGraceDay())
+                .toList();
+        if (evaluated.isEmpty()) return 0;
+        long met = evaluated.stream().filter(DailyPoints::isThresholdMet).count();
+        return Math.round((double) met / evaluated.size() * 100 * 10.0) / 10.0;
     }
 
     private User resolveUser(String email) {

@@ -12,4 +12,5 @@ public class MomentumApiApplication {
 		SpringApplication.run(MomentumApiApplication.class, args);
 	}
 
+
 }

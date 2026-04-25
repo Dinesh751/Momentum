@@ -68,26 +68,28 @@ public class StreakService {
 
         Optional<DailyPoints> dp = dailyPointsRepository.findByUserAndDate(user, date);
 
-        if (dp.isPresent()) {
+        boolean hasMeaningfulTasks = dp.isPresent() && dp.get().getTotalPossiblePts() > 0;
+
+        if (hasMeaningfulTasks) {
             if (dp.get().isThresholdMet()) {
                 incrementStreak(streak);
                 streak.setLastActivityDate(date);
                 log.info("User {} — streak incremented to {}", user.getEmail(), streak.getCurrentStreak());
                 badgeService.evaluateAfterStreakIncrement(user, streak, date);
             } else {
-                // tasks existed but threshold wasn't met — no grace day applies
+                // had scoreable tasks but threshold not met — no grace day
                 resetStreak(streak);
                 log.info("User {} — streak reset (threshold not met on {})", user.getEmail(), date);
             }
         } else {
-            // no tasks added — grace day applies if available
+            // no tasks or only NONE-priority tasks — grace day applies if available
             if (streak.getGraceDaysUsedThisWeek() < 2) {
                 streak.setGraceDaysUsedThisWeek(streak.getGraceDaysUsedThisWeek() + 1);
                 markGraceDay(user, date, streak.getCurrentThreshold());
                 log.info("User {} — grace day used on {}", user.getEmail(), date);
             } else {
                 resetStreak(streak);
-                log.info("User {} — streak reset (no grace days left, no tasks on {})", user.getEmail(), date);
+                log.info("User {} — streak reset (no grace days left on {})", user.getEmail(), date);
             }
         }
 
