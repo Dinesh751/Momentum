@@ -402,6 +402,7 @@ const RANGE_OPTIONS: { label: string; value: DayRange }[] = [
 
 function CarryOverPrompt({
   tasks,
+  currentTasks,
   selectedRange,
   onRangeChange,
   onConfirm,
@@ -411,6 +412,7 @@ function CarryOverPrompt({
   rangeError,
 }: {
   tasks: Task[];
+  currentTasks: Task[];
   selectedRange: DayRange;
   onRangeChange: (range: DayRange) => void;
   onConfirm: (selectedIds: number[]) => void;
@@ -419,11 +421,17 @@ function CarryOverPrompt({
   isRangeLoading: boolean;
   rangeError: string | null;
 }) {
-  const [selectedIds, setSelectedIds] = useState<number[]>(() => tasks.map((t) => t.id));
+  const todayTitles = new Set(currentTasks.map((t) => t.title.toLowerCase()));
+
+  const [selectedIds, setSelectedIds] = useState<number[]>(() =>
+    tasks.filter((t) => !todayTitles.has(t.title.toLowerCase())).map((t) => t.id)
+  );
 
   useEffect(() => {
-    setSelectedIds(tasks.map((t) => t.id));
-  }, [tasks]);
+    setSelectedIds(
+      tasks.filter((t) => !todayTitles.has(t.title.toLowerCase())).map((t) => t.id)
+    );
+  }, [tasks, currentTasks]);
 
   const toggleId = (id: number) => {
     setSelectedIds((prev) =>
@@ -494,6 +502,7 @@ function CarryOverPrompt({
             ) : (
               tasks.map((t) => {
                 const selected = selectedIds.includes(t.id);
+                const isDuplicate = todayTitles.has(t.title.toLowerCase());
                 return (
                   <TouchableOpacity
                     key={t.id}
@@ -508,13 +517,20 @@ function CarryOverPrompt({
                       color={selected ? '#4f46e5' : '#d1d5db'}
                       style={{ marginRight: 10 }}
                     />
-                    <Text
-                      className="text-gray-700 text-sm flex-1"
-                      numberOfLines={1}
-                      style={{ textDecorationLine: selected ? 'none' : 'line-through' }}
-                    >
-                      {t.title}
-                    </Text>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        className="text-gray-700 text-sm"
+                        numberOfLines={1}
+                        style={{ textDecorationLine: selected ? 'none' : 'line-through' }}
+                      >
+                        {t.title}
+                      </Text>
+                      {isDuplicate && (
+                        <Text style={{ fontSize: 10, color: '#d97706', fontWeight: '600', marginTop: 1 }}>
+                          Already in today
+                        </Text>
+                      )}
+                    </View>
                     <View
                       className="px-2 py-0.5 rounded-md ml-2"
                       style={{ backgroundColor: PRIORITY_COLORS[t.priority].bg }}
@@ -727,6 +743,7 @@ export default function TasksScreen() {
       {carryOverTasks.length > 0 && (
         <CarryOverPrompt
           tasks={carryOverTasks}
+          currentTasks={tasks}
           selectedRange={carryOverRange}
           onRangeChange={handleRangeChange}
           isConfirming={carryOverLoading}

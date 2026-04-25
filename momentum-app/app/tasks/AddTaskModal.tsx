@@ -58,6 +58,7 @@ const buildEndDatePresets = (startDate: string) => {
 
 export default function AddTaskModal({ visible, onClose, selectedDate }: Props) {
   const addTask = useTaskStore((s) => s.addTask);
+  const existingTasks = useTaskStore((s) => s.tasks);
   const defaultDate = selectedDate ?? localDateISO();
   const [selectedPriority, setSelectedPriority] = useState<Priority>('NONE');
   const [isRecurring, setIsRecurring] = useState(false);
@@ -70,8 +71,17 @@ export default function AddTaskModal({ visible, onClose, selectedDate }: Props) 
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormData>();
+
+  const titleValue = watch('title', '');
+  const isDuplicate =
+    !isRecurring &&
+    !!titleValue?.trim() &&
+    existingTasks.some(
+      (t) => t.title.toLowerCase() === titleValue.trim().toLowerCase()
+    );
 
   const handleClose = () => {
     reset();
@@ -188,6 +198,14 @@ export default function AddTaskModal({ visible, onClose, selectedDate }: Props) 
                     </View>
                     {errors.title && (
                       <Text className="text-red-500 text-xs mt-1.5 ml-1">{errors.title.message}</Text>
+                    )}
+                    {!errors.title && isDuplicate && (
+                      <View className="flex-row items-center mt-1.5 ml-1" style={{ gap: 4 }}>
+                        <Ionicons name="warning-outline" size={13} color="#d97706" />
+                        <Text style={{ color: '#d97706', fontSize: 12, fontWeight: '500' }}>
+                          A task with this name already exists for this date
+                        </Text>
+                      </View>
                     )}
                   </View>
                 )}
