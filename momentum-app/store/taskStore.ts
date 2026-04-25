@@ -1,14 +1,10 @@
 import { create } from 'zustand';
 import { CreateTaskPayload, Task } from '../types';
 import taskService from '../services/taskService';
+import { localDateISO, offsetLocalDateISO } from '../utils/date';
 
-const todayISO = () => new Date().toISOString().split('T')[0];
-
-const tomorrowISO = () => {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  return d.toISOString().split('T')[0];
-};
+const todayISO = () => localDateISO();
+const tomorrowISO = () => offsetLocalDateISO(localDateISO(), 1);
 
 interface TaskState {
   tasks: Task[];
@@ -46,8 +42,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   addTask: async (payload) => {
-    const task = await taskService.create(payload);
-    set((state) => ({ tasks: [...state.tasks, task] }));
+    const { selectedDate, loadTasks } = get();
+    if (payload.recurring) {
+      // Bulk create — reload so we see any tasks that land on the selected date
+      await taskService.create(payload);
+      await loadTasks(selectedDate);
+    } else {
+      const created = await taskService.create({ dueDate: selectedDate, ...payload });
+      set((state) => ({ tasks: [...state.tasks, ...created] }));
+    }
   },
 
   deleteTask: async (id) => {
