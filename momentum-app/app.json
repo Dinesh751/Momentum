@@ -27,11 +27,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "owner": "dinesh_budime",
     "extra": {
       "eas": {
-        "projectId": "ad6cfa7d-1794-4c44-b6fb-5d40512355bd"
+        "projectId": "d9fdec54-46de-4c47-ad90-b5c64b8f39db"
       }
-    },
-    "owner": "dinesh_budime"
+    }
   }
 }
