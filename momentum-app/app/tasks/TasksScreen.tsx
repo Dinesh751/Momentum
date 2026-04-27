@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { TasksStackParamList } from '../../navigation/TasksStack';
@@ -623,11 +624,14 @@ export default function TasksScreen() {
   useEffect(() => {
     loadTasks();
     loadDailyPoints(todayISO());
-    taskService.getIncompleteBefore(todayISO(), afterDateForRange('3d'))
-      .then((fetched) => {
-        if (fetched.length > 0) setCarryOverTasks(fetched);
-      })
-      .catch(() => {});
+    AsyncStorage.getItem('carryOverDismissedDate').then((dismissed) => {
+      if (dismissed === todayISO()) return;
+      taskService.getIncompleteBefore(todayISO(), afterDateForRange('3d'))
+        .then((fetched) => {
+          if (fetched.length > 0) setCarryOverTasks(fetched);
+        })
+        .catch(() => {});
+    });
   }, []);
 
   useEffect(() => {
@@ -757,10 +761,14 @@ export default function TasksScreen() {
               toMove.length > 0 ? carryOverFromYesterday(toMove) : Promise.resolve(),
               ...toDelete.map((t) => taskService.remove(t.id)),
             ]);
+            await AsyncStorage.removeItem('carryOverDismissedDate');
             setCarryOverLoading(false);
             setCarryOverTasks([]);
           }}
-          onSkip={() => setCarryOverTasks([])}
+          onSkip={() => {
+            AsyncStorage.setItem('carryOverDismissedDate', todayISO());
+            setCarryOverTasks([]);
+          }}
         />
       )}
     </>
