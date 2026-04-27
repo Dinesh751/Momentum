@@ -13,7 +13,6 @@ export function useAppForeground() {
   const appState = useRef<AppStateStatus>(AppState.currentState);
 
   const loadTasks = useTaskStore((s) => s.loadTasks);
-  const selectedDate = useTaskStore((s) => s.selectedDate);
   const loadStreak = useStreakStore((s) => s.loadStreak);
   const loadBadges = useBadgeStore((s) => s.loadBadges);
   const loadForDate = useDailyPointsStore((s) => s.loadForDate);
@@ -33,5 +32,5 @@ export function useAppForeground() {
     });
 
     return () => subscription.remove();
-  }, [loadTasks, loadStreak, loadBadges, loadForDate, loadStats, selectedDate]);
+  }, [loadTasks, loadStreak, loadBadges, loadForDate, loadStats]);
 }
