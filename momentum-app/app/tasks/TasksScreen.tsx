@@ -624,11 +624,12 @@ export default function TasksScreen() {
   useEffect(() => {
     loadTasks();
     loadDailyPoints(todayISO());
-    AsyncStorage.getItem('carryOverDismissedDate').then((dismissed) => {
-      if (dismissed === todayISO()) return;
+    AsyncStorage.getItem('dismissedCarryOverIds').then((stored) => {
+      const dismissedIds: number[] = stored ? JSON.parse(stored) : [];
       taskService.getIncompleteBefore(todayISO(), afterDateForRange('3d'))
         .then((fetched) => {
-          if (fetched.length > 0) setCarryOverTasks(fetched);
+          const visible = fetched.filter((t) => !dismissedIds.includes(t.id));
+          if (visible.length > 0) setCarryOverTasks(visible);
         })
         .catch(() => {});
     });
@@ -756,15 +757,24 @@ export default function TasksScreen() {
           onConfirm={async (selectedIds) => {
             setCarryOverLoading(true);
             const toMove = carryOverTasks.filter((t) => selectedIds.includes(t.id));
+            const toSkip = carryOverTasks.filter((t) => !selectedIds.includes(t.id));
             if (toMove.length > 0) {
               await carryOverFromYesterday(toMove);
             }
-            await AsyncStorage.removeItem('carryOverDismissedDate');
+            if (toSkip.length > 0) {
+              const stored = await AsyncStorage.getItem('dismissedCarryOverIds');
+              const existing: number[] = stored ? JSON.parse(stored) : [];
+              const updated = [...new Set([...existing, ...toSkip.map((t) => t.id)])];
+              await AsyncStorage.setItem('dismissedCarryOverIds', JSON.stringify(updated));
+            }
             setCarryOverLoading(false);
             setCarryOverTasks([]);
           }}
-          onSkip={() => {
-            AsyncStorage.setItem('carryOverDismissedDate', todayISO());
+          onSkip={async () => {
+            const stored = await AsyncStorage.getItem('dismissedCarryOverIds');
+            const existing: number[] = stored ? JSON.parse(stored) : [];
+            const updated = [...new Set([...existing, ...carryOverTasks.map((t) => t.id)])];
+            await AsyncStorage.setItem('dismissedCarryOverIds', JSON.stringify(updated));
             setCarryOverTasks([]);
           }}
         />
