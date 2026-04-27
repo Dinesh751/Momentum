@@ -226,7 +226,7 @@ export default function BadgesScreen() {
   }, []);
 
   if (isLoading && badges.length === 0) return <LoadingScreen />;
-  if (error && badges.length === 0) return <ErrorScreen onRetry={loadBadges} />;
+  if (error && badges.length === 0) return <ErrorScreen onRetry={() => loadBadges(true)} />;
 
   const earnedCount = badges.filter((b) => b.earned).length;
 

@@ -39,12 +39,12 @@ export default function DashboardScreen() {
 
   const todayISO = localDateISO();
 
-  const loadAll = useCallback(() => {
-    loadTasks();
-    loadStreak();
-    loadBadges();
-    loadForDate(todayISO);
-    loadStats();
+  const loadAll = useCallback((force = false) => {
+    loadTasks(undefined, force);
+    loadStreak(force);
+    loadBadges(force);
+    loadForDate(todayISO, force);
+    loadStats(force);
   }, [todayISO]);
 
   useEffect(() => {
@@ -54,11 +54,11 @@ export default function DashboardScreen() {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.allSettled([
-      loadTasks(),
-      loadStreak(),
-      loadBadges(),
-      loadForDate(todayISO),
-      loadStats(),
+      loadTasks(undefined, true),
+      loadStreak(true),
+      loadBadges(true),
+      loadForDate(todayISO, true),
+      loadStats(true),
     ]);
     setRefreshing(false);
   }, [todayISO]);

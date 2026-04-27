@@ -435,7 +435,7 @@ export default function StreaksScreen() {
   }, []);
 
   if (isLoading && !streak) return <LoadingScreen />;
-  if (error && !streak) return <ErrorScreen onRetry={loadStreak} />;
+  if (error && !streak) return <ErrorScreen onRetry={() => loadStreak(true)} />;
   if (!streak) return <EmptyStreakState />;
 
   return <StreakContent streak={streak} />;

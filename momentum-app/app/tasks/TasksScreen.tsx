@@ -685,7 +685,7 @@ export default function TasksScreen() {
               refreshControl={
                 <RefreshControl
                   refreshing={isLoading}
-                  onRefresh={() => loadTasks(selectedDate)}
+                  onRefresh={() => loadTasks(selectedDate, true)}
                   tintColor="#4f46e5"
                 />
               }
@@ -735,7 +735,7 @@ export default function TasksScreen() {
           onClose={() => setSeriesTask(null)}
           onDeleted={() => {
             setSeriesTask(null);
-            loadTasks(selectedDate);
+            loadTasks(selectedDate, true);
           }}
         />
       )}

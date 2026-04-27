@@ -2,11 +2,13 @@ import { useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { useAuthStore } from '../store/authStore';
+import { useAppForeground } from '../hooks/useAppForeground';
 import AuthStack from './AuthStack';
 import AppStack from './AppStack';
 
 export default function RootNavigator() {
   const { isAuthenticated, isLoading, loadStoredAuth } = useAuthStore();
+  useAppForeground();
 
   useEffect(() => {
     loadStoredAuth();

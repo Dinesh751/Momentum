@@ -209,7 +209,7 @@ export default function StatsScreen() {
   }, []);
 
   if (isLoading && !overview) return <LoadingScreen />;
-  if (error && !overview) return <ErrorScreen onRetry={loadAll} />;
+  if (error && !overview) return <ErrorScreen onRetry={() => loadAll(true)} />;
 
   const periodData = period === 'weekly' ? weekly : monthly;
 
