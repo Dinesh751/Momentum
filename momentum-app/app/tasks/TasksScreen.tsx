@@ -563,7 +563,7 @@ function CarryOverPrompt({
                 >
                   {selectedIds.length > 0
                     ? `Add to Today`
-                    : 'Discard All'}
+                    : 'Done'}
                 </Text>
               )}
             </TouchableOpacity>
@@ -756,11 +756,9 @@ export default function TasksScreen() {
           onConfirm={async (selectedIds) => {
             setCarryOverLoading(true);
             const toMove = carryOverTasks.filter((t) => selectedIds.includes(t.id));
-            const toDelete = carryOverTasks.filter((t) => !selectedIds.includes(t.id));
-            await Promise.all([
-              toMove.length > 0 ? carryOverFromYesterday(toMove) : Promise.resolve(),
-              ...toDelete.map((t) => taskService.remove(t.id)),
-            ]);
+            if (toMove.length > 0) {
+              await carryOverFromYesterday(toMove);
+            }
             await AsyncStorage.removeItem('carryOverDismissedDate');
             setCarryOverLoading(false);
             setCarryOverTasks([]);
