@@ -28,6 +28,12 @@
       "favicon": "./assets/favicon.png"
     },
     "owner": "dinesh_budime",
+    "updates": {
+      "url": "https://u.expo.dev/d9fdec54-46de-4c47-ad90-b5c64b8f39db"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "extra": {
       "eas": {
         "projectId": "d9fdec54-46de-4c47-ad90-b5c64b8f39db"
