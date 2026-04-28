@@ -4,7 +4,6 @@ import taskService from '../services/taskService';
 import { localDateISO, offsetLocalDateISO } from '../utils/date';
 
 const todayISO = () => localDateISO();
-const tomorrowISO = () => offsetLocalDateISO(localDateISO(), 1);
 
 const TASK_TTL = 2 * 60 * 1000;
 
@@ -107,7 +106,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   moveToTomorrow: async (id) => {
     set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }));
     try {
-      await taskService.update(id, { dueDate: tomorrowISO() });
+      await taskService.update(id, { dueDate: offsetLocalDateISO(get().selectedDate, 1) });
     } catch {
       get().loadTasks(get().selectedDate, true);
     }

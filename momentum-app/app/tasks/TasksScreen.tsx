@@ -93,8 +93,8 @@ function TaskCard({
   return (
     <Swipeable
       ref={swipeableRef}
-      renderLeftActions={task.completed ? undefined : () => <TomorrowAction onPress={onMoveToTomorrow} />}
-      onSwipeableLeftOpen={task.completed ? undefined : onMoveToTomorrow}
+      renderLeftActions={task.completed || !!task.recurringGroupId ? undefined : () => <TomorrowAction onPress={onMoveToTomorrow} />}
+      onSwipeableLeftOpen={task.completed || !!task.recurringGroupId ? undefined : onMoveToTomorrow}
       friction={2}
       overshootFriction={8}
       containerStyle={{ marginHorizontal: 16, marginBottom: 12 }}
@@ -423,14 +423,22 @@ function CarryOverPrompt({
   rangeError: string | null;
 }) {
   const todayTitles = new Set(currentTasks.map((t) => t.title.toLowerCase()));
+  const todayGroupIds = new Set(
+    currentTasks.filter((t) => t.recurringGroupId).map((t) => t.recurringGroupId as string)
+  );
+
+  // Exclude recurring tasks whose series already has an instance today
+  const visibleTasks = tasks.filter(
+    (t) => !(t.recurringGroupId && todayGroupIds.has(t.recurringGroupId))
+  );
 
   const [selectedIds, setSelectedIds] = useState<number[]>(() =>
-    tasks.filter((t) => !todayTitles.has(t.title.toLowerCase())).map((t) => t.id)
+    visibleTasks.filter((t) => !todayTitles.has(t.title.toLowerCase())).map((t) => t.id)
   );
 
   useEffect(() => {
     setSelectedIds(
-      tasks.filter((t) => !todayTitles.has(t.title.toLowerCase())).map((t) => t.id)
+      visibleTasks.filter((t) => !todayTitles.has(t.title.toLowerCase())).map((t) => t.id)
     );
   }, [tasks, currentTasks]);
 
@@ -440,7 +448,7 @@ function CarryOverPrompt({
     );
   };
 
-  const canConfirm = !isConfirming && !isRangeLoading && tasks.length > 0;
+  const canConfirm = !isConfirming && !isRangeLoading && visibleTasks.length > 0;
 
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onSkip}>
@@ -459,7 +467,7 @@ function CarryOverPrompt({
                 <Ionicons name="time-outline" size={18} color="#d97706" />
               </View>
               <Text className="text-lg font-bold text-gray-900">
-                {tasks.length} incomplete task{tasks.length > 1 ? 's' : ''} from the past
+                {visibleTasks.length} incomplete task{visibleTasks.length > 1 ? 's' : ''} from the past
               </Text>
             </View>
             <Text className="text-sm text-gray-400 mb-4 ml-11">
@@ -496,12 +504,12 @@ function CarryOverPrompt({
               <ActivityIndicator color="#6366f1" style={{ paddingVertical: 24 }} />
             ) : rangeError ? (
               <Text className="text-center text-red-400 text-sm py-6">{rangeError}</Text>
-            ) : tasks.length === 0 ? (
+            ) : visibleTasks.length === 0 ? (
               <Text className="text-center text-gray-400 text-sm py-6">
                 No incomplete tasks in this range
               </Text>
             ) : (
-              tasks.map((t) => {
+              visibleTasks.map((t) => {
                 const selected = selectedIds.includes(t.id);
                 const isDuplicate = todayTitles.has(t.title.toLowerCase());
                 return (
