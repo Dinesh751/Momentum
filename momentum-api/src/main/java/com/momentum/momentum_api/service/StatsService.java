@@ -43,7 +43,7 @@ public class StatsService {
         long badgesEarned = userBadgeRepository.countByUser(user);
 
         List<DailyPoints> allDays = dailyPointsRepository.findAllByUserAndDateBetween(
-                user, LocalDate.of(2000, 1, 1), LocalDate.now());
+                user, LocalDate.of(2000, 1, 1), LocalDate.now().minusDays(1));
         double consistency = computeConsistency(allDays);
 
         return StatsOverviewResponse.builder()
@@ -59,15 +59,15 @@ public class StatsService {
     @Transactional(readOnly = true)
     public PeriodStatsResponse getWeeklyStats(String email) {
         User user = resolveUser(email);
-        LocalDate today = LocalDate.now();
-        return buildPeriodStats(user, today.minusDays(6), today);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        return buildPeriodStats(user, yesterday.minusDays(6), yesterday);
     }
 
     @Transactional(readOnly = true)
     public PeriodStatsResponse getMonthlyStats(String email) {
         User user = resolveUser(email);
-        LocalDate today = LocalDate.now();
-        return buildPeriodStats(user, today.minusDays(29), today);
+        LocalDate yesterday = LocalDate.now().minusDays(1);
+        return buildPeriodStats(user, yesterday.minusDays(29), yesterday);
     }
 
     @Transactional(readOnly = true)
