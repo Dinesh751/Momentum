@@ -64,6 +64,10 @@ public class Task {
     @Column(name = "recurring_group_id")
     private UUID recurringGroupId;
 
+    @Column(name = "skipped", nullable = false)
+    @Builder.Default
+    private boolean skipped = false;
+
     @Column(name = "snoozed_until")
     private OffsetDateTime snoozedUntil;
 

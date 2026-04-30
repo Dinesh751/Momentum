@@ -12,11 +12,11 @@ import java.util.UUID;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    List<Task> findAllByUserAndDueDateOrderByCreatedAtAsc(User user, LocalDate dueDate);
+    List<Task> findAllByUserAndDueDateAndSkippedFalseOrderByCreatedAtAsc(User user, LocalDate dueDate);
 
-    List<Task> findAllByUserAndDueDateBeforeAndCompletedFalseOrderByDueDateAscCreatedAtAsc(User user, LocalDate before);
+    List<Task> findAllByUserAndDueDateBeforeAndCompletedFalseAndSkippedFalseOrderByDueDateAscCreatedAtAsc(User user, LocalDate before);
 
-    List<Task> findAllByUserAndDueDateGreaterThanEqualAndDueDateBeforeAndCompletedFalseOrderByDueDateAscCreatedAtAsc(User user, LocalDate after, LocalDate before);
+    List<Task> findAllByUserAndDueDateGreaterThanEqualAndDueDateBeforeAndCompletedFalseAndSkippedFalseOrderByDueDateAscCreatedAtAsc(User user, LocalDate after, LocalDate before);
 
     Optional<Task> findByIdAndUser(Long id, User user);
 

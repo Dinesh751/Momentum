@@ -34,7 +34,7 @@ public class DailyPointsService {
     public void sync(User user, LocalDate date) {
         if (date == null) return;
 
-        List<Task> tasks = taskRepository.findAllByUserAndDueDateOrderByCreatedAtAsc(user, date);
+        List<Task> tasks = taskRepository.findAllByUserAndDueDateAndSkippedFalseOrderByCreatedAtAsc(user, date);
         Optional<DailyPoints> existing = dailyPointsRepository.findByUserAndDate(user, date);
 
         if (tasks.isEmpty() && existing.isEmpty()) return;

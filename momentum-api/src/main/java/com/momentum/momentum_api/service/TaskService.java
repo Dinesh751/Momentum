@@ -201,7 +201,7 @@ public class TaskService {
     public List<TaskResponse> getTasksByDate(String email, LocalDate date) {
         User user = resolveUser(email);
         recurringMaterializationService.materializeForUserOnDate(user, date);
-        return taskRepository.findAllByUserAndDueDateOrderByCreatedAtAsc(user, date)
+        return taskRepository.findAllByUserAndDueDateAndSkippedFalseOrderByCreatedAtAsc(user, date)
                 .stream()
                 .map(TaskResponse::from)
                 .toList();
@@ -211,8 +211,8 @@ public class TaskService {
     public List<TaskResponse> getIncompleteTasksBefore(String email, LocalDate before, LocalDate after) {
         User user = resolveUser(email);
         List<Task> tasks = (after != null)
-                ? taskRepository.findAllByUserAndDueDateGreaterThanEqualAndDueDateBeforeAndCompletedFalseOrderByDueDateAscCreatedAtAsc(user, after, before)
-                : taskRepository.findAllByUserAndDueDateBeforeAndCompletedFalseOrderByDueDateAscCreatedAtAsc(user, before);
+                ? taskRepository.findAllByUserAndDueDateGreaterThanEqualAndDueDateBeforeAndCompletedFalseAndSkippedFalseOrderByDueDateAscCreatedAtAsc(user, after, before)
+                : taskRepository.findAllByUserAndDueDateBeforeAndCompletedFalseAndSkippedFalseOrderByDueDateAscCreatedAtAsc(user, before);
         return tasks.stream().map(TaskResponse::from).toList();
     }
 
@@ -262,7 +262,16 @@ public class TaskService {
             userRepository.save(user);
         }
 
-        taskRepository.delete(task);
+        if (task.getRecurringGroupId() != null) {
+            // Soft-skip so the materialization service won't recreate this instance
+            task.setSkipped(true);
+            task.setCompleted(false);
+            task.setCompletedAt(null);
+            taskRepository.save(task);
+        } else {
+            taskRepository.delete(task);
+        }
+
         dailyPointsService.sync(user, dueDate);
     }
 
